@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="noindex, nofollow" name="robots"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sign In - Codozent CMS Admin Panel</title>
+<link href="/assets/images/fav.png" rel="icon" type="image/png"/>
+<link href="/assets/css/plugins/fontawesome.css" rel="stylesheet"/>
+<link href="/admin/static/admin.css" rel="stylesheet"/>
+<style>
+        .pwd-wrap {
+            position: relative;
+        }
+        .pwd-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 14px;
+        }
+        .pwd-toggle:hover {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body class="login-container">
+<div class="login-card">
+<div class="login-header">
+<img alt="Codozent Technologies" class="login-logo" src="/assets/images/logo/logo-1.svg"/>
+<h2>Content Management System</h2>
+<p>Sign in with your authorized administrator credentials</p>
+</div>
+<div class="alert-box alert-error" id="login-error" style="display: none;"></div>
+<form id="login-form">
+<div class="form-group">
+<label for="login-email">Email Address</label>
+<input autocomplete="email" autofocus="" id="login-email" placeholder="admin@codozent.com" required="" type="email"/>
+</div>
+<div class="form-group">
+<label for="login-password">Password</label>
+<div class="pwd-wrap">
+<input autocomplete="current-password" id="login-password" placeholder="••••••••••••" required="" type="password"/>
+<button class="pwd-toggle" id="toggle-pwd" title="Show/Hide Password" type="button">
+<i class="fa-regular fa-eye" id="toggle-pwd-icon"></i>
+</button>
+</div>
+</div>
+<button class="btn btn-primary btn-block" id="login-btn" type="submit">
+<span id="btn-text">Sign In to Admin Panel</span>
+<i class="fa-regular fa-arrow-right" id="btn-icon"></i>
+</button>
+</form>
+<div class="login-footer">
+<p><i class="fa-regular fa-shield-check"></i> Protected server-side session authentication</p>
+</div>
+</div>
+<script>
+        const form = document.getElementById('login-form');
+        const errBox = document.getElementById('login-error');
+        const submitBtn = document.getElementById('login-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnIcon = document.getElementById('btn-icon');
+        const togglePwd = document.getElementById('toggle-pwd');
+        const pwdInput = document.getElementById('login-password');
+        const toggleIcon = document.getElementById('toggle-pwd-icon');
+
+        togglePwd.addEventListener('click', () => {
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                toggleIcon.className = 'fa-regular fa-eye-slash';
+            } else {
+                pwdInput.type = 'password';
+                toggleIcon.className = 'fa-regular fa-eye';
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+
+            const email = document.getElementById('login-email').value.trim();
+            const password = pwdInput.value;
+
+            if (!email || !password) {
+                errBox.textContent = 'Please enter both email and password.';
+                errBox.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            btnText.textContent = 'Authenticating...';
+            btnIcon.className = 'fa-regular fa-spinner fa-spin';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    btnText.textContent = 'Redirecting...';
+                    if (data.user && data.user.role === 'admin') {
+                        window.location.href = '/admin';
+                    } else {
+                        // Non-admin signed in
+                        errBox.textContent = 'Account authenticated, but administrator role is required to access the admin panel.';
+                        errBox.style.display = 'block';
+                        submitBtn.disabled = false;
+                        btnText.textContent = 'Sign In to Admin Panel';
+                        btnIcon.className = 'fa-regular fa-arrow-right';
+                    }
+                } else {
+                    errBox.textContent = data.detail || 'Invalid email or password.';
+                    errBox.style.display = 'block';
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Sign In to Admin Panel';
+                    btnIcon.className = 'fa-regular fa-arrow-right';
+                }
+            } catch (err) {
+                errBox.textContent = 'Unable to connect to the server. Please check your connection.';
+                errBox.style.display = 'block';
+                submitBtn.disabled = false;
+                btnText.textContent = 'Sign In to Admin Panel';
+                btnIcon.className = 'fa-regular fa-arrow-right';
+            }
+        });
+    </script>
+</body>
+</html>

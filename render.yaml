@@ -1,0 +1,36 @@
+# ==========================================
+# Render.com Blueprint: Codozent CMS Backend
+# 100% Free Tier Compatible with Supabase PostgreSQL
+# ==========================================
+services:
+  - type: web
+    name: codozent-cms
+    runtime: python
+    region: oregon # or frankfurt / singapore
+    plan: free # 100% Free tier supported when using Supabase PostgreSQL
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn cms.server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CMS_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false # Set to your Supabase PostgreSQL URI: postgresql://postgres.[ref]:[pass]@aws-0-[region].pooler.supabase.com:6543/postgres
+      - key: ADMIN_EMAIL
+        sync: false # Set in Render Dashboard: codozent.help@gmail.com
+      - key: ADMIN_INITIAL_PASSWORD
+        sync: false # Set in Render Dashboard
+      - key: CORS_ORIGINS
+        value: "https://codozent.com,https://www.codozent.com"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDFLARE_PAGES_DEPLOY_HOOK
+        sync: false # Optional Cloudflare Pages deploy hook URL

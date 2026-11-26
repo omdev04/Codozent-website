@@ -1,0 +1,12 @@
+.git/
+.github/
+.agents/
+.kiro/
+cms/
+data/
+Dockerfile
+render.yaml
+requirements.txt
+*.py
+*.bak
+*.md

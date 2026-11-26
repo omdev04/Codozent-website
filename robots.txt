@@ -1,0 +1,10 @@
+# robots.txt for Codozent Technologies
+# Canonical host: https://codozent.com
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://codozent.com/sitemap.xml

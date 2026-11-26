@@ -1,0 +1,27 @@
+# Environment Variables
+.env
+
+# Database & Runtime Data
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/backups/
+data/.secret_key
+data/admin_bootstrap_credentials.txt
+data/setup_token.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,5 @@
+# ==========================================
+# Cloudflare Edge Worker Architecture
+# Handled directly by _worker.js at the edge
+# ==========================================
+
