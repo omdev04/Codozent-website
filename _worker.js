@@ -92,13 +92,14 @@ function parseCookies(cookieHeader) {
 // ----------------- SUPABASE REST API CLIENT -----------------
 
 async function querySupabase(env, path, options = {}) {
-    const supabaseUrl = env.SUPABASE_URL;
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
+    let supabaseUrl = (env.SUPABASE_URL || '').trim();
+    const supabaseKey = (env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY || '').trim();
 
     if (!supabaseUrl || !supabaseKey) {
         return null; // Return null gracefully if key not yet provided in env
     }
 
+    supabaseUrl = supabaseUrl.replace(/\/+$/, '');
     const url = `${supabaseUrl}/rest/v1/${path}`;
     const headers = {
         'apikey': supabaseKey,
@@ -151,7 +152,38 @@ export default {
             });
         }
 
-        // 2. Auth Routes
+        // 2. Health Check Route
+        if (url.pathname === '/api/health' || url.pathname === '/health') {
+            const hasUrl = Boolean(env.SUPABASE_URL && env.SUPABASE_URL.trim());
+            const hasKey = Boolean(env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY);
+            const hasEmail = Boolean(env.ADMIN_EMAIL && env.ADMIN_EMAIL.trim());
+            const hasPass = Boolean(env.ADMIN_PASSWORD && env.ADMIN_PASSWORD.trim());
+
+            let dbStatus = 'NOT_CONFIGURED';
+            if (hasUrl && hasKey) {
+                try {
+                    const rows = await querySupabase(env, 'homepage_video_section?select=id&limit=1');
+                    dbStatus = rows !== null ? 'CONNECTED' : 'ERROR_CONNECTING_TO_SUPABASE';
+                } catch (e) {
+                    dbStatus = 'FAILED: ' + e.message;
+                }
+            }
+
+            return jsonResponse({
+                status: dbStatus === 'CONNECTED' ? 'healthy' : 'setup_required',
+                service: 'Codozent Cloudflare Edge Worker',
+                config: {
+                    SUPABASE_URL: hasUrl ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
+                    SUPABASE_KEY: hasKey ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
+                    ADMIN_EMAIL: hasEmail ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
+                    ADMIN_PASSWORD: hasPass ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
+                    CMS_SECRET_KEY: env.CMS_SECRET_KEY ? 'CONFIGURED' : 'USING_DEFAULT_SALT'
+                },
+                database_status: dbStatus
+            });
+        }
+
+        // 3. Auth Routes
         if (url.pathname === '/api/auth/login' && request.method === 'POST') {
             return handleLogin(request, env, secretKey);
         }
@@ -165,12 +197,12 @@ export default {
             return handlePasswordChange(request, env, secretKey);
         }
 
-        // 3. Public API Routes
+        // 4. Public API Routes
         if (url.pathname.startsWith('/api/public/')) {
             return handlePublicApi(url, env);
         }
 
-        // 4. Admin API Routes (Protected)
+        // 5. Admin API Routes (Protected)
         if (url.pathname.startsWith('/api/admin/')) {
             const session = await getSession(request, secretKey);
             if (!session) {
@@ -179,44 +211,38 @@ export default {
             return handleAdminApi(request, url, env, session);
         }
 
-        // 5. Admin Panel UI Routes
+        // 6. Admin Panel UI Routes (Protected Server-Side)
         if (url.pathname === '/admin' || url.pathname === '/admin/') {
             const session = await getSession(request, secretKey);
             if (!session) {
                 return Response.redirect(`${url.origin}/admin/login`, 302);
             }
-            // Serve admin.html from assets
-            const adminReq = new Request(new URL('/cms/static/admin.html', request.url), request);
+            // Serve admin dashboard from /admin/index.html
+            const adminReq = new Request(new URL('/admin/index.html', request.url), request);
             return env.ASSETS.fetch(adminReq);
         }
 
-        if (url.pathname === '/admin/login') {
+        if (url.pathname === '/admin/login' || url.pathname === '/admin/login/') {
             const session = await getSession(request, secretKey);
             if (session) {
                 return Response.redirect(`${url.origin}/admin`, 302);
             }
-            // Serve login.html from assets
-            const loginReq = new Request(new URL('/cms/static/login.html', request.url), request);
+            // Serve login page from /admin/login.html
+            const loginReq = new Request(new URL('/admin/login.html', request.url), request);
             return env.ASSETS.fetch(loginReq);
         }
 
-        if (url.pathname.startsWith('/admin/static/')) {
-            const staticPath = url.pathname.replace('/admin/static/', '/cms/static/');
-            const staticReq = new Request(new URL(staticPath, request.url), request);
-            return env.ASSETS.fetch(staticReq);
-        }
-
-        // 6. Dynamic Edge SSR for Homepage (Live sync on load)
+        // 7. Dynamic Edge SSR for Homepage (Live sync on load)
         if (url.pathname === '/' || url.pathname === '/index.html') {
             return handleHomepageSSR(request, env);
         }
 
-        // 7. Dynamic Blog Details (blog-details.html?slug=...)
+        // 8. Dynamic Blog Details (blog-details.html?slug=...)
         if (url.pathname === '/blog-details.html' && url.searchParams.has('slug')) {
             return handleBlogDetailsSSR(request, env, url.searchParams.get('slug'));
         }
 
-        // 8. Fallback: Serve static assets directly from Cloudflare Edge
+        // 9. Fallback: Serve static assets directly from Cloudflare Edge
         return env.ASSETS.fetch(request);
     }
 };

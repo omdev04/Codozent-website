@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="noindex, nofollow" name="robots" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Codozent CMS &amp; Admin Panel</title>
+    <link href="/assets/images/fav.png" rel="icon" type="image/png" />
+    <link href="/assets/css/plugins/fontawesome.css" rel="stylesheet" />
+    <link href="/admin/static/admin.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- MAIN ADMIN DASHBOARD (Protected Server-Side) -->
+    <div class="app-layout" id="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a class="sidebar-logo" href="/admin">
+                    <img alt="Codozent Technologies" src="/assets/images/logo/logo-2.svg" />
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">CORE CMS</div>
+                <a class="nav-item active" data-tab="dashboard" href="#dashboard">
+                    <i class="fa-regular fa-gauge"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item" data-tab="careers" href="#careers">
+                    <i class="fa-regular fa-briefcase"></i>
+                    <span>Careers &amp; Jobs</span>
+                    <span class="badge badge-primary" id="badge-jobs">0</span>
+                </a>
+                <a class="nav-item" data-tab="images" href="#images">
+                    <i class="fa-regular fa-images"></i>
+                    <span>Homepage Images &amp; Work</span>
+                    <span class="badge badge-accent" id="badge-work">4</span>
+                </a>
+                <a class="nav-item" data-tab="pages" href="#pages">
+                    <i class="fa-regular fa-file-lines"></i>
+                    <span>Page Content</span>
+                </a>
+                <a class="nav-item" data-tab="blog" href="#blog">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Blog Posts</span>
+                    <span class="badge badge-accent" id="badge-blog">3</span>
+                </a>
+                <a class="nav-item" data-tab="media" href="#media">
+                    <i class="fa-regular fa-folder-open"></i>
+                    <span>Media Library</span>
+                </a>
+                <div class="nav-section-title">SYSTEM</div>
+                <a class="nav-item" data-tab="users" href="#users" id="nav-users">
+                    <i class="fa-regular fa-users"></i>
+                    <span>User Management</span>
+                </a>
+                <a class="nav-item" data-tab="account" href="#account">
+                    <i class="fa-regular fa-user-shield"></i>
+                    <span>Admin Account</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a class="btn-sidebar-view" href="/" target="_blank">
+                    <i class="fa-regular fa-arrow-up-right-from-square"></i>
+                    <span>View Live Website</span>
+                </a>
+                <div class="user-profile">
+                    <div class="avatar"><i class="fa-regular fa-user"></i></div>
+                    <div class="user-info">
+                        <span class="user-name" id="user-display-name">Admin</span>
+                        <span class="user-email" id="user-display-email">admin@codozent.com</span>
+                    </div>
+                    <button class="btn-icon" id="logout-btn" title="Sign Out">
+                        <i class="fa-regular fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 id="page-title">Dashboard Overview</h1>
+                    <span id="page-subtitle">Welcome to the Codozent Technologies Content Management System</span>
+                </div>
+                <div class="topbar-right">
+                    <div class="system-status">
+                        <span class="status-dot"></span>
+                        <span>SQLite WAL Live</span>
+                    </div>
+                    <a class="btn btn-outline btn-sm" href="/" target="_blank">
+                        <i class="fa-regular fa-globe"></i>
+                        <span>Public Website</span>
+                    </a>
+                </div>
+            </header>
+            <div class="content-body">
+                <!-- GLOBAL TOAST NOTIFICATIONS -->
+                <div class="toast-container" id="toast-container"></div>
+                <!-- 1. DASHBOARD OVERVIEW TAB -->
+                <section class="tab-pane active" id="tab-dashboard">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon bg-blue"><i class="fa-regular fa-briefcase"></i></div>
+                            <div class="metric-details">
+                                <span class="metric-label">Published Jobs</span>
+                                <h3 class="metric-value" id="stat-published-jobs">0</h3>
+                                <span class="metric-sub" id="stat-job-status">Public: No Current Openings</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-cyan"><i class="fa-regular fa-newspaper"></i></div>
+                            <div class="metric-details">
+                                <span class="metric-label">Published Blog Posts</span>
+                                <h3 class="metric-value" id="stat-published-blogs">3</h3>
+                                <span class="metric-sub">Real engineering articles live</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-purple"><i class="fa-regular fa-file-lines"></i></div>
+                            <div class="metric-details">
+                                <span class="metric-label">Managed Pages</span>
+                                <h3 class="metric-value" id="stat-pages-count">7</h3>
+                                <span class="metric-sub">Full content models configured</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-green"><i class="fa-regular fa-images"></i></div>
+                            <div class="metric-details">
+                                <span class="metric-label">Homepage Slots</span>
+                                <h3 class="metric-value" id="stat-images-count">7</h3>
+                                <span class="metric-sub">Fixed aspect ratio containers</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-panels-grid mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fa-regular fa-bolt"></i> Quick Actions</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="quick-actions-list">
+                                    <button class="btn btn-primary" onclick="app.showAddJobModal()">
+                                        <i class="fa-regular fa-plus"></i> Add New Job Opening
+                                    </button>
+                                    <button class="btn btn-outline" onclick="app.showAddBlogModal()">
+                                        <i class="fa-regular fa-pen-to-square"></i> Write New Blog Post
+                                    </button>
+                                    <button class="btn btn-outline" onclick="app.switchTab('images')">
+                                        <i class="fa-regular fa-image"></i> Manage Homepage Images
+                                    </button>
+                                    <button class="btn btn-outline" onclick="app.switchTab('pages')">
+                                        <i class="fa-regular fa-file-pen"></i> Edit Page Content
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fa-regular fa-shield-check"></i> System Integrity &amp; Rules</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="system-rules-list">
+                                    <li><i class="fa-regular fa-circle-check text-success"></i> <strong>Navbar
+                                            Integrity:</strong> Public navbar layout, links, and styling remain strictly
+                                        preserved and non-editable.</li>
+                                    <li><i class="fa-regular fa-circle-check text-success"></i> <strong>Visual
+                                            Fidelity:</strong> Template CSS, fonts, responsive breakpoints, and
+                                        animations remain 100% untouched.</li>
+                                    <li><i class="fa-regular fa-circle-check text-success"></i> <strong>Careers
+                                            Truthfulness:</strong> When 0 jobs are published, the public site displays
+                                        the clean, verified "No Current Openings" card.</li>
+                                    <li><i class="fa-regular fa-circle-check text-success"></i> <strong>URL
+                                            Validation:</strong> Every job application link is verified prior to
+                                        publishing.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- 2. CAREERS & JOB MANAGEMENT TAB (HIGHEST PRIORITY) -->
+                <section class="tab-pane" id="tab-careers">
+                    <div class="section-toolbar">
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-job-filter="all" onclick="app.filterJobs('all')">All
+                                Jobs</button>
+                            <button class="filter-btn" data-job-filter="published"
+                                onclick="app.filterJobs('published')">Published</button>
+                            <button class="filter-btn" data-job-filter="draft"
+                                onclick="app.filterJobs('draft')">Drafts</button>
+                            <button class="filter-btn" data-job-filter="closed"
+                                onclick="app.filterJobs('closed')">Closed</button>
+                        </div>
+                        <button class="btn btn-primary" onclick="app.showAddJobModal()">
+                            <i class="fa-regular fa-plus"></i> Add Job Opening
+                        </button>
+                    </div>
+                    <div class="public-status-banner mb-3" id="career-public-status-banner">
+                        <i class="fa-regular fa-info-circle"></i>
+                        <span id="career-status-text">Checking public careers state...</span>
+                    </div>
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Job Title &amp; Team</th>
+                                        <th>Location &amp; Type</th>
+                                        <th>Apply Link</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="jobs-table-body">
+                                    <tr>
+                                        <td class="text-center py-4" colspan="5">Loading job openings...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <!-- 3. HOMEPAGE IMAGES & WORK TAB -->
+                <section class="tab-pane" id="tab-images">
+                    <div class="subnav-tabs mb-4">
+                        <button class="subnav-btn active" data-subtab="work-items"
+                            onclick="app.switchSubTab('work-items')">
+                            <i class="fa-regular fa-briefcase mr-2"></i> Featured Work &amp; Portfolio Items
+                        </button>
+                        <button class="subnav-btn" data-subtab="image-slots" onclick="app.switchSubTab('image-slots')">
+                            <i class="fa-regular fa-image mr-2"></i> Fixed Homepage Image Slots
+                        </button>
+                        <button class="subnav-btn" data-subtab="video-section"
+                            onclick="app.switchSubTab('video-section')">
+                            <i class="fa-brands fa-youtube mr-2"></i> Video &amp; Media Showcase
+                        </button>
+                    </div>
+                    <!-- SUBTAB 1: WORK ITEMS (ADD & EDIT WORK) -->
+                    <div class="subtab-content" id="subtab-work-items">
+                        <div class="section-toolbar">
+                            <div class="filter-group">
+                                <button class="filter-btn active" data-work-filter="all"
+                                    onclick="app.filterWork('all')">All Work</button>
+                                <button class="filter-btn" data-work-filter="published"
+                                    onclick="app.filterWork('published')">Published</button>
+                                <button class="filter-btn" data-work-filter="draft"
+                                    onclick="app.filterWork('draft')">Drafts</button>
+                            </div>
+                            <button class="btn btn-primary" onclick="app.showAddWorkModal()">
+                                <i class="fa-regular fa-plus"></i> Add New Work Item
+                            </button>
+                        </div>
+                        <div class="card mb-4">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Featured Image</th>
+                                            <th>Project Title &amp; Category</th>
+                                            <th>Target Route</th>
+                                            <th>Display Order</th>
+                                            <th>Status</th>
+                                            <th class="text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="work-table-body">
+                                        <tr>
+                                            <td class="text-center py-4" colspan="6">Loading portfolio work...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- SUBTAB 2: FIXED HOMEPAGE SLOTS -->
+                    <div class="subtab-content" id="subtab-image-slots" style="display: none;">
+                        <div class="section-toolbar">
+                            <div>
+                                <p class="section-desc">Manage homepage image slots. Rendered dimensions, slot aspect
+                                    ratios, and responsive behavior are strictly preserved.</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="app.publishHomepageImages()">
+                                <i class="fa-regular fa-cloud-arrow-up"></i> Publish Images to Website
+                            </button>
+                        </div>
+                        <div class="image-slots-grid" id="homepage-images-grid">
+                            <!-- Loaded via JS -->
+                        </div>
+                    </div>
+                    <!-- SUBTAB 3: HOMEPAGE VIDEO SHOWCASE SETTINGS -->
+                    <div class="subtab-content" id="subtab-video-section" style="display: none;">
+                        <div class="card p-4">
+                            <!-- HEADER -->
+                            <div class="showcase-header-card">
+                                <div>
+                                    <h3 class="font-bold text-lg text-navy mb-1"
+                                        style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-brands fa-youtube" style="color: #EF4444; font-size: 22px;"></i>
+                                        Homepage Video &amp; Image Showcase Section
+                                    </h3>
+                                    <p class="text-sm text-muted mb-0">Control the central showcase on the homepage.
+                                        Toggle between interactive YouTube video playback (with animated play icon and
+                                        popup) or purely static image mode (no icon, no video).</p>
+                                </div>
+                                <div id="video-status-badge">
+                                    <span class="badge badge-primary" style="font-size: 13px; padding: 6px 14px;">
+                                        <i class="fa-solid fa-circle-play mr-1"></i> Video Mode Active
+                                    </span>
+                                </div>
+                            </div>
+
+                            <form id="form-video-section" action="javascript:void(0);"
+                                onsubmit="app.saveVideoSection(event); return false;">
+                                <!-- DISPLAY MODE TOGGLE CARDS -->
+                                <div class="form-group mb-4">
+                                    <label class="form-label font-bold mb-2"
+                                        style="display: flex; align-items: center; gap: 6px; color: var(--brand-navy);">
+                                        <i class="fa-solid fa-sliders text-primary"></i> Showcase Display Mode
+                                    </label>
+                                    <div class="mode-switcher-grid">
+                                        <!-- MODE 1: VIDEO MODE -->
+                                        <div class="mode-card active-video" id="mode-video-card"
+                                            onclick="app.setVideoMode(true)">
+                                            <div
+                                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <input type="radio" name="video_mode_choice" id="radio-video-on"
+                                                        checked
+                                                        style="accent-color: var(--brand-primary); transform: scale(1.2); cursor: pointer;" />
+                                                    <span
+                                                        style="font-weight: 700; font-size: 14.5px; color: var(--brand-navy);">🎬
+                                                        Interactive Video Mode</span>
+                                                </div>
+                                                <span id="badge-mode-video"
+                                                    style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #0F50BC; color: #fff;">ACTIVE</span>
+                                            </div>
+                                            <p
+                                                style="font-size: 12px; color: #475569; margin: 0; line-height: 1.5; padding-left: 24px;">
+                                                Displays the pulsating round play button over the image. Visitors
+                                                clicking the button will watch the YouTube video in a popup overlay
+                                                modal.
+                                            </p>
+                                        </div>
+
+                                        <!-- MODE 2: STATIC IMAGE ONLY -->
+                                        <div class="mode-card" id="mode-image-card" onclick="app.setVideoMode(false)">
+                                            <div
+                                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <input type="radio" name="video_mode_choice" id="radio-video-off"
+                                                        style="accent-color: var(--brand-primary); transform: scale(1.2); cursor: pointer;" />
+                                                    <span
+                                                        style="font-weight: 700; font-size: 14.5px; color: var(--brand-navy);">🖼️
+                                                        Static Image Only Mode</span>
+                                                </div>
+                                                <span id="badge-mode-image"
+                                                    style="display: none; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #64748B; color: #fff;">ACTIVE</span>
+                                            </div>
+                                            <p
+                                                style="font-size: 12px; color: #475569; margin: 0; line-height: 1.5; padding-left: 24px;">
+                                                Completely hides the play icon and disables video modal. Displays only
+                                                the clean, high-resolution showcase image on the live website.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- YOUTUBE VIDEO URL FIELD -->
+                                <div class="form-group mb-4" id="group-video-url">
+                                    <label class="form-label font-bold" for="video-section-url"
+                                        style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>YouTube Video URL <span class="text-danger">*</span></span>
+                                        <span id="video-url-status-hint" class="text-xs text-muted">Active in Video
+                                            Mode</span>
+                                    </label>
+                                    <div class="showcase-input-group">
+                                        <span class="addon-icon youtube">
+                                            <i class="fa-brands fa-youtube"></i>
+                                        </span>
+                                        <input type="url" id="video-section-url"
+                                            placeholder="https://www.youtube.com/watch?v=vZE0j_WCRvI or https://youtu.be/..."
+                                            oninput="app.updateVideoPreview()" />
+                                        <button type="button" class="addon-btn" onclick="app.testVideoLink()"
+                                            title="Open and test video in YouTube">
+                                            <i class="fa-regular fa-arrow-up-right-from-square"></i> Test Link
+                                        </button>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block">Supports any standard YouTube URL (e.g.
+                                        <code>https://www.youtube.com/watch?v=...</code> or
+                                        <code>https://youtu.be/...</code>).</small>
+                                </div>
+
+                                <!-- SHOWCASE BACKGROUND IMAGE FIELD -->
+                                <div class="form-group mb-4">
+                                    <label class="form-label font-bold" for="video-section-image">
+                                        Showcase Background Image URL <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="showcase-input-group">
+                                        <span class="addon-icon media">
+                                            <i class="fa-regular fa-image"></i>
+                                        </span>
+                                        <input type="text" id="video-section-image"
+                                            placeholder="https://res.cloudinary.com/... or assets/images/video/01.webp"
+                                            oninput="app.updateVideoPreview()" required />
+                                        <button type="button" class="addon-btn" onclick="app.openMediaPickerForVideo()"
+                                            title="Browse uploaded images in Media Library">
+                                            <i class="fa-regular fa-images"></i> Media Library
+                                        </button>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block">Default local asset:
+                                        <code>assets/images/video/01.webp</code> or paste any Cloudinary CDN link
+                                        (<code>https://res.cloudinary.com/...</code>).</small>
+                                </div>
+
+                                <!-- IMAGE ALT TEXT -->
+                                <div class="form-group mb-4">
+                                    <label class="form-label font-bold" for="video-section-alt">Image Accessibility Alt
+                                        Text</label>
+                                    <input type="text" id="video-section-alt" class="form-control"
+                                        placeholder="Engineering Process" value="Engineering Process" />
+                                </div>
+
+                                <!-- REAL-TIME LIVE DEVICE PREVIEW -->
+                                <div class="form-group mb-4">
+                                    <label
+                                        class="form-label font-bold mb-2 d-flex justify-content-between align-items-center">
+                                        <span><i class="fa-regular fa-eye mr-1 text-primary"></i> Real-Time Live
+                                            Preview</span>
+                                        <span class="text-xs text-muted" id="preview-mode-indicator">Mode: Video Active
+                                            (Play Button Enabled)</span>
+                                    </label>
+                                    <div class="preview-container-box">
+                                        <div class="preview-viewport-window">
+                                            <img id="video-preview-img" src="assets/images/video/01.webp"
+                                                alt="Showcase Preview"
+                                                style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s ease;" />
+                                            <div id="video-preview-play-btn" class="preview-play-icon-pulse"
+                                                onclick="app.testVideoLink()" title="Test YouTube Video Playback">
+                                                <i class="fa-solid fa-play"></i>
+                                            </div>
+                                            <div id="video-preview-image-only-pill" class="preview-image-only-badge"
+                                                style="display: none;">
+                                                <i class="fa-regular fa-image text-primary"></i> Static Image Only Mode
+                                                — Play button is hidden
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ACTION BUTTONS -->
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-primary" id="btn-save-video"
+                                        onclick="app.saveVideoSection(event)">
+                                        <i class="fa-regular fa-floppy-disk mr-1"></i> Save &amp; Publish Video Section
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="app.loadVideoSection()">
+                                        <i class="fa-regular fa-rotate-left mr-1"></i> Reset
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                <!-- 4. PAGES CONTENT TAB -->
+                <section class="tab-pane" id="tab-pages">
+                    <div class="pages-layout">
+                        <div class="pages-list-card">
+                            <div class="card-header">
+                                <h3>Select Page</h3>
+                            </div>
+                            <div class="list-group" id="pages-list-container">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                        <div class="page-editor-card">
+                            <div class="card-header page-editor-header">
+                                <div>
+                                    <h3 id="current-page-name">Select a page to edit</h3>
+                                    <span class="text-muted" id="current-page-file"></span>
+                                </div>
+                                <div class="editor-actions" id="page-editor-actions" style="display: none;">
+                                    <button class="btn btn-outline btn-sm" onclick="app.savePageDraft()">
+                                        <i class="fa-regular fa-floppy-disk"></i> Save Draft
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="app.previewCurrentPage()">
+                                        <i class="fa-regular fa-eye"></i> Preview
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" onclick="app.publishCurrentPage()">
+                                        <i class="fa-regular fa-cloud-arrow-up"></i> Publish to Live Page
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body" id="page-fields-form-container">
+                                <div class="empty-state text-center py-5">
+                                    <i class="fa-regular fa-file-pen empty-icon"></i>
+                                    <p>Select a page from the left to view and edit its text fields.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- 5. BLOG POSTS TAB -->
+                <section class="tab-pane" id="tab-blog">
+                    <div class="section-toolbar">
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-blog-filter="all" onclick="app.filterBlog('all')">All
+                                Posts</button>
+                            <button class="filter-btn" data-blog-filter="published"
+                                onclick="app.filterBlog('published')">Published</button>
+                            <button class="filter-btn" data-blog-filter="draft"
+                                onclick="app.filterBlog('draft')">Drafts</button>
+                        </div>
+                        <button class="btn btn-primary" onclick="app.showAddBlogModal()">
+                            <i class="fa-regular fa-plus"></i> Write New Article
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Featured</th>
+                                        <th>Title &amp; Excerpt</th>
+                                        <th>Category &amp; Author</th>
+                                        <th>Publish Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="blog-table-body">
+                                    <tr>
+                                        <td class="text-center py-4" colspan="6">Loading blog posts...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <!-- 6. MEDIA LIBRARY TAB (CLOUDINARY INTEGRATED) -->
+                <section class="tab-pane" id="tab-media">
+                    <!-- Cloudinary Status Banner -->
+                    <div class="alert-box mb-3" id="cloudinary-status-banner"
+                        style="display: flex; align-items: center; justify-content: space-between; background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-regular fa-cloud" style="font-size: 18px;"></i>
+                            <span id="cloudinary-status-text">Checking Cloudinary integration status...</span>
+                        </div>
+                        <span class="badge badge-primary" id="cloudinary-status-badge">Checking</span>
+                    </div>
+                    <div class="section-toolbar">
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <div class="form-group mb-0" style="min-width: 180px;">
+                                <select class="form-control" id="media-folder-select"
+                                    style="padding: 8px 12px; font-size: 13px;">
+                                    <option value="codozent/general">Folder: codozent/general</option>
+                                    <option value="codozent/blog">Folder: codozent/blog</option>
+                                    <option value="codozent/work">Folder: codozent/work</option>
+                                    <option value="codozent/homepage">Folder: codozent/homepage</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0" style="min-width: 220px;">
+                                <input class="form-control" id="media-search-input"
+                                    oninput="app.filterMedia(this.value)" placeholder="Search filename or alt..."
+                                    style="padding: 8px 12px; font-size: 13px;" type="text" />
+                            </div>
+                        </div>
+                        <label class="btn btn-primary cursor-pointer" id="media-upload-btn">
+                            <i class="fa-regular fa-cloud-arrow-up"></i>
+                            <span id="media-upload-label">Upload Image</span>
+                            <input accept="image/jpeg,image/png,image/webp,image/svg+xml" id="media-upload-input"
+                                onchange="app.handleMediaUpload(this)" style="display: none;" type="file" />
+                        </label>
+                    </div>
+                    <div class="media-library-grid" id="media-library-grid">
+                        <!-- Loaded via JS -->
+                    </div>
+                </section>
+                <!-- 7. USER MANAGEMENT TAB (ADMIN ONLY) -->
+                <section class="tab-pane" id="tab-users">
+                    <div class="card mb-4">
+                        <div class="card-header flex-between">
+                            <div>
+                                <h3 style="font-size: 16px; font-weight: 700; color: #081836;"><i
+                                        class="fa-regular fa-users mr-2" style="color: #1363DF;"></i> Team &amp; User
+                                    Accounts</h3>
+                                <p style="font-size: 13px; color: #64748B; margin-top: 2px;">Manage team members, assign
+                                    access roles, and control administrative privileges.</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="app.showAddUserModal()">
+                                <i class="fa-regular fa-user-plus"></i>
+                                <span>Add New User</span>
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User / Identity</th>
+                                            <th>Role &amp; Permissions</th>
+                                            <th>Status</th>
+                                            <th>Created Date</th>
+                                            <th>Last Login</th>
+                                            <th class="text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body">
+                                        <tr>
+                                            <td class="text-center py-4" colspan="6">
+                                                <i class="fa-regular fa-spinner fa-spin"></i> Loading team users...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Role Guide Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 style="font-size: 14px; font-weight: 600; color: #081836;"><i
+                                    class="fa-regular fa-shield-halved text-primary mr-2"></i> Role-Based Access Control
+                                Architecture</h3>
+                        </div>
+                        <div class="card-body">
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                                <div
+                                    style="padding: 16px; border: 1px solid #E9D5FF; border-radius: 8px; background: #FAF5FF;">
+                                    <div class="mb-2"><span class="badge badge-purple"><i
+                                                class="fa-regular fa-shield-check mr-2"></i> Administrator</span></div>
+                                    <p style="font-size: 12px; color: #4A5568; line-height: 1.5;">Full server-level
+                                        access. Can manage all website content, media assets, deploy changes,
+                                        create/edit/delete users, and configure security credentials.</p>
+                                </div>
+                                <div
+                                    style="padding: 16px; border: 1px solid #BFDBFE; border-radius: 8px; background: #EFF6FF;">
+                                    <div class="mb-2"><span class="badge badge-primary"><i
+                                                class="fa-regular fa-pen-to-square mr-2"></i> Content Editor</span>
+                                    </div>
+                                    <p style="font-size: 12px; color: #4A5568; line-height: 1.5;">Can create, edit,
+                                        publish, and delete blog posts, career job openings, and page text. Cannot
+                                        modify user accounts or system secrets.</p>
+                                </div>
+                                <div
+                                    style="padding: 16px; border: 1px solid #E2E8F0; border-radius: 8px; background: #F8FAFC;">
+                                    <div class="mb-2"><span class="badge badge-muted"><i
+                                                class="fa-regular fa-eye mr-2"></i> Content Viewer</span></div>
+                                    <p style="font-size: 12px; color: #4A5568; line-height: 1.5;">Read-only access to
+                                        view draft content, operational statistics, and preview articles before
+                                        publication. Cannot publish or mutate content.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- 8. ACCOUNT SETTINGS TAB -->
+                <section class="tab-pane" id="tab-account">
+                    <div class="card max-w-600">
+                        <div class="card-header">
+                            <h3><i class="fa-regular fa-key"></i> Change Admin Password</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="change-password-form" onsubmit="app.handleChangePassword(event)">
+                                <div class="form-group">
+                                    <label>Current Password</label>
+                                    <input autocomplete="current-password" id="current-pass" required=""
+                                        type="password" />
+                                </div>
+                                <div class="form-group">
+                                    <label>New Password (min 8 characters)</label>
+                                    <input autocomplete="new-password" id="new-pass" minlength="8" required=""
+                                        type="password" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirm New Password</label>
+                                    <input autocomplete="new-password" id="confirm-pass" minlength="8" required=""
+                                        type="password" />
+                                </div>
+                                <button class="btn btn-primary" type="submit">Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <!-- MODAL: ADD / EDIT JOB (HIGHEST PRIORITY) -->
+    <div class="modal" id="job-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="job-modal-title">Add Job Opening</h3>
+                    <button class="modal-close" onclick="app.closeModal('job-modal')">×</button>
+                </div>
+                <form id="job-form" onsubmit="app.handleJobSubmit(event)">
+                    <input id="job-id" type="hidden" />
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-8">
+                                <label for="job-title">Job Title *</label>
+                                <input id="job-title" placeholder="e.g. Senior Frontend Engineer" required=""
+                                    type="text" />
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="job-status">Status *</label>
+                                <select id="job-status" required="">
+                                    <option value="draft">Draft (Private)</option>
+                                    <option value="published">Published (Live on website)</option>
+                                    <option value="closed">Closed (Hidden)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-4">
+                                <label for="job-dept">Department / Team *</label>
+                                <input id="job-dept" placeholder="e.g. Engineering" required="" type="text" />
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="job-loc">Location / Mode *</label>
+                                <input id="job-loc" placeholder="e.g. Bengaluru / Hybrid" required="" type="text" />
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="job-type">Employment Type *</label>
+                                <select id="job-type" required="">
+                                    <option value="Full-time">Full-time</option>
+                                    <option value="Contract">Contract</option>
+                                    <option value="Part-time">Part-time</option>
+                                    <option value="Internship">Internship</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="job-desc">Job Overview &amp; Description *</label>
+                            <textarea id="job-desc"
+                                placeholder="Brief summary of the role and what the candidate will work on..."
+                                required="" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="job-quals">Required Qualifications &amp; Skills</label>
+                            <textarea id="job-quals" placeholder="Key skills, tech stack, and experience required..."
+                                rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-4">
+                                <label for="job-apply-label">Apply Button Label</label>
+                                <input id="job-apply-label" type="text" value="Apply for Role" />
+                            </div>
+                            <div class="form-group col-8">
+                                <label for="job-apply-url">Application URL / Apply Link *</label>
+                                <input id="job-apply-url"
+                                    placeholder="https://forms.gle/... or mailto:codozent.help@gmail.com" required=""
+                                    type="text" />
+                                <small class="form-hint">Must begin with <code>https://</code>, <code>http://</code>, or
+                                    <code>mailto:</code></small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="job-deadline">Application Deadline (Optional)</label>
+                            <input id="job-deadline" type="date" />
+                        </div>
+                        <!-- LIVE PREVIEW BOX -->
+                        <div class="job-preview-container">
+                            <span class="preview-badge">Live Public Card Preview</span>
+                            <div class="preview-card-render" id="job-preview-render">
+                                <h4 id="prev-title">Job Title</h4>
+                                <div class="prev-meta">
+                                    <span id="prev-dept"><i class="fa-regular fa-briefcase"></i> Engineering</span>
+                                    <span id="prev-loc"><i class="fa-regular fa-location-dot"></i> Bengaluru</span>
+                                    <span id="prev-type"><i class="fa-regular fa-clock"></i> Full-time</span>
+                                </div>
+                                <p id="prev-desc">Job description preview...</p>
+                                <div class="prev-btn" id="prev-btn">Apply for Role <i
+                                        class="fa-regular fa-arrow-up-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" onclick="app.closeModal('job-modal')"
+                            type="button">Cancel</button>
+                        <button class="btn btn-primary" id="job-submit-btn" type="submit">Save Job Opening</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: ADD / EDIT BLOG POST -->
+    <div class="modal" id="blog-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="blog-modal-title">Write Blog Post</h3>
+                    <button class="modal-close" onclick="app.closeModal('blog-modal')">×</button>
+                </div>
+                <form id="blog-form" onsubmit="app.handleBlogSubmit(event)">
+                    <input id="blog-id" type="hidden" />
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-8">
+                                <label for="blog-title">Article Title *</label>
+                                <input id="blog-title" oninput="app.autoGenerateSlug(this.value)"
+                                    placeholder="e.g. Modern Web Architecture at Scale" required="" type="text" />
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="blog-status">Status *</label>
+                                <select id="blog-status" required="">
+                                    <option value="draft">Draft (Private)</option>
+                                    <option value="published">Published (Live)</option>
+                                    <option value="archived">Archived</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="blog-slug">URL Slug *</label>
+                                <input id="blog-slug" placeholder="modern-web-architecture-at-scale" required=""
+                                    type="text" />
+                                <small class="form-hint">Unique URL path identifier</small>
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="blog-category">Category *</label>
+                                <input id="blog-category" placeholder="Web Architecture" required="" type="text" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="blog-author">Author *</label>
+                                <input id="blog-author" required="" type="text" value="Codozent Engineering Team" />
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="blog-author-role">Author Role</label>
+                                <input id="blog-author-role" type="text" value="Software Architecture" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="blog-image">Featured Image Path *</label>
+                                <input id="blog-image" required="" type="text" value="assets/images/blog/01.webp" />
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="blog-image-alt">Featured Image Alt Text *</label>
+                                <input id="blog-image-alt" placeholder="Descriptive alt text" required="" type="text" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="blog-excerpt">Excerpt / Summary *</label>
+                            <textarea id="blog-excerpt" placeholder="Brief summary of the article..." required=""
+                                rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="blog-body">Article Content (HTML allowed) *</label>
+                            <textarea id="blog-body" placeholder="&lt;p&gt;Full article content...&lt;/p&gt;"
+                                required="" rows="6"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" onclick="app.closeModal('blog-modal')"
+                            type="button">Cancel</button>
+                        <button class="btn btn-primary" id="blog-submit-btn" type="submit">Save Article</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: IMAGE REPLACEMENT (CLOUDINARY / MEDIA / LOCAL) -->
+    <div class="modal" id="image-replace-modal">
+        <div class="modal-dialog" style="max-width: 620px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-image text-primary"></i> Replace Homepage Image
+                    </h3>
+                    <button class="modal-close" onclick="app.closeModal('image-replace-modal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <input id="replace-slot-key" type="hidden" />
+
+                    <!-- CURRENT / DRAFT PREVIEW -->
+                    <div class="current-image-preview-box">
+                        <label
+                            style="font-weight: 600; font-size: 13px; color: var(--brand-navy); margin-bottom: 6px; display: block;">
+                            Image Preview (Live)
+                        </label>
+                        <div class="img-preview-frame"
+                            style="height: 220px; background: #081836; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;">
+                            <img alt="preview" id="modal-img-preview" src=""
+                                style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.2s;"
+                                onerror="this.style.opacity='0.4';" onload="this.style.opacity='1';" />
+                        </div>
+                        <span class="specs-badge" id="modal-img-specs"
+                            style="margin-top: 8px; display: inline-block;"></span>
+                    </div>
+
+                    <!-- CLOUDINARY / URL INPUT -->
+                    <div class="form-group mt-3">
+                        <label for="replace-image-url"
+                            style="font-weight: 600; font-size: 13px; color: var(--brand-navy); display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-regular fa-cloud text-primary"></i> Cloudinary Image URL or Asset Path *
+                        </label>
+                        <div class="showcase-input-group">
+                            <span class="addon-icon media">
+                                <i class="fa-regular fa-link"></i>
+                            </span>
+                            <input id="replace-image-url" oninput="app.updateReplaceModalPreview(this.value)"
+                                placeholder="https://res.cloudinary.com/... or assets/images/..." required=""
+                                type="text" />
+                            <button class="addon-btn" onclick="app.openMediaPickerForSlot()"
+                                title="Choose from Media Library" type="button">
+                                <i class="fa-regular fa-images"></i> Media Library
+                            </button>
+                        </div>
+                        <small class="text-muted mt-1 d-block">
+                            Paste your Cloudinary image link (<code>https://res.cloudinary.com/...</code>) directly, or
+                            select from your uploaded media.
+                        </small>
+                    </div>
+
+                    <!-- FILE UPLOAD (ALTERNATIVE) -->
+                    <div class="form-group mt-3">
+                        <label style="font-size: 12px; color: var(--text-muted);">
+                            Or upload replacement file from computer:
+                        </label>
+                        <input accept="image/*" class="form-control" id="replace-file-input"
+                            onchange="app.handleImageFileSelect(this)" style="font-size: 12px; padding: 6px 10px;"
+                            type="file" />
+                    </div>
+
+                    <!-- ALT TEXT -->
+                    <div class="form-group mt-3">
+                        <label for="replace-alt-text"
+                            style="font-weight: 600; font-size: 13px; color: var(--brand-navy);">
+                            Image Alt Text (Accessibility &amp; SEO) *
+                        </label>
+                        <input class="form-control" id="replace-alt-text" placeholder="Descriptive alt text" required=""
+                            type="text" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" onclick="app.closeModal('image-replace-modal')"
+                        type="button">Cancel</button>
+                    <button class="btn btn-primary" onclick="app.saveImageDraft()" type="button">
+                        <i class="fa-regular fa-floppy-disk mr-1"></i> Save Draft Replacement
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: ADD USER (ADMIN ONLY) -->
+    <div class="modal" id="user-add-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fa-regular fa-user-plus mr-2" style="color: #1363DF;"></i> Add New User</h3>
+                    <button class="modal-close" onclick="app.closeModal('user-add-modal')">×</button>
+                </div>
+                <form id="user-add-form" onsubmit="app.handleAddUser(event)">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="user-add-name">Full Name *</label>
+                            <input id="user-add-name" placeholder="e.g. Sarah Jenkins" required="" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label for="user-add-email">Email Address *</label>
+                            <input autocomplete="email" id="user-add-email" placeholder="e.g. sarah@codozent.com"
+                                required="" type="email" />
+                        </div>
+                        <div class="form-group">
+                            <label for="user-add-role">System Role *</label>
+                            <select id="user-add-role" required="">
+                                <option value="editor">Content Editor (Can edit/publish pages, blog, jobs)</option>
+                                <option value="admin">Administrator (Full administrative access &amp; user management)
+                                </option>
+                                <option value="viewer">Content Viewer (Read-only drafts and preview access)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="user-add-pass">Initial Password * (min 8 characters)</label>
+                            <div class="pwd-generator-wrap">
+                                <input autocomplete="new-password" id="user-add-pass" minlength="8"
+                                    placeholder="••••••••••••" required="" type="password" />
+                                <button class="btn-addon" onclick="app.generatePassword('user-add-pass')" type="button">
+                                    <i class="fa-regular fa-arrows-rotate mr-2"></i> Generate
+                                </button>
+                            </div>
+                            <small class="form-hint">User should change this temporary password upon first
+                                login.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" onclick="app.closeModal('user-add-modal')"
+                            type="button">Cancel</button>
+                        <button class="btn btn-primary" id="user-add-submit-btn" type="submit">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: EDIT USER (ADMIN ONLY) -->
+    <div class="modal" id="user-edit-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fa-regular fa-user-pen mr-2" style="color: #1363DF;"></i> Edit User Details</h3>
+                    <button class="modal-close" onclick="app.closeModal('user-edit-modal')">×</button>
+                </div>
+                <form id="user-edit-form" onsubmit="app.handleEditUser(event)">
+                    <input id="user-edit-id" type="hidden" />
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="user-edit-email">Email Address (Primary Identity)</label>
+                            <input disabled="" id="user-edit-email" style="background: #F1F5F9; cursor: not-allowed;"
+                                type="email" />
+                        </div>
+                        <div class="form-group">
+                            <label for="user-edit-name">Full Name *</label>
+                            <input id="user-edit-name" required="" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label for="user-edit-role">Assigned Role *</label>
+                            <select id="user-edit-role" required="">
+                                <option value="admin">Administrator (Full control)</option>
+                                <option value="editor">Content Editor (Edit &amp; publish content)</option>
+                                <option value="viewer">Content Viewer (Read-only)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="user-edit-status">Account Status *</label>
+                            <select id="user-edit-status" required="">
+                                <option value="active">Active (Access enabled)</option>
+                                <option value="disabled">Disabled (Immediate session revocation &amp; lockout)</option>
+                            </select>
+                            <small class="form-hint">Disabling a user revokes all their active sessions
+                                immediately.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" onclick="app.closeModal('user-edit-modal')"
+                            type="button">Cancel</button>
+                        <button class="btn btn-primary" id="user-edit-submit-btn" type="submit">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: RESET USER PASSWORD (ADMIN ONLY) -->
+    <div class="modal" id="user-reset-pwd-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fa-regular fa-key mr-2" style="color: #1363DF;"></i> Reset User Password</h3>
+                    <button class="modal-close" onclick="app.closeModal('user-reset-pwd-modal')">×</button>
+                </div>
+                <form id="user-reset-pwd-form" onsubmit="app.handleResetUserPassword(event)">
+                    <input id="user-reset-id" type="hidden" />
+                    <div class="modal-body">
+                        <p style="font-size: 13px; color: #475569; margin-bottom: 16px;">
+                            You are resetting the password for <strong id="user-reset-target-email"
+                                style="color: #081836;"></strong>.
+                            This will immediately revoke all their active sessions across devices.
+                        </p>
+                        <div class="form-group">
+                            <label for="user-reset-new-pass">New Temporary Password * (min 8 characters)</label>
+                            <div class="pwd-generator-wrap">
+                                <input autocomplete="new-password" id="user-reset-new-pass" minlength="8"
+                                    placeholder="••••••••••••" required="" type="password" />
+                                <button class="btn-addon" onclick="app.generatePassword('user-reset-new-pass')"
+                                    type="button">
+                                    <i class="fa-regular fa-arrows-rotate mr-2"></i> Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" onclick="app.closeModal('user-reset-pwd-modal')"
+                            type="button">Cancel</button>
+                        <button class="btn btn-primary" id="user-reset-submit-btn" type="submit">Confirm Password
+                            Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: ADD / EDIT WORK ITEM -->
+    <div class="modal" id="work-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="work-modal-title"><i class="fa-regular fa-briefcase mr-2" style="color: #1363DF;"></i> Add
+                        Work / Portfolio Item</h3>
+                    <button class="modal-close" onclick="app.closeModal('work-modal')">×</button>
+                </div>
+                <form id="work-form" onsubmit="app.handleWorkSubmit(event)">
+                    <input id="work-id" type="hidden" />
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-8">
+                                <label for="work-title">Project Title *</label>
+                                <input id="work-title" oninput="app.updateWorkPreview()"
+                                    placeholder="e.g. High-Performance Responsive Web Portals" required=""
+                                    type="text" />
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="work-status">Status *</label>
+                                <select id="work-status" required="">
+                                    <option value="published">Published (Live on website)</option>
+                                    <option value="draft">Draft (Private)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="work-category">Category / Tech Tags *</label>
+                                <input id="work-category" oninput="app.updateWorkPreview()"
+                                    placeholder="e.g. Website Development, Performance" required="" type="text" />
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="work-route">Target Link / Route *</label>
+                                <input id="work-route" required="" type="text" value="case-studies.html" />
+                            </div>
+                            <div class="form-group col-2">
+                                <label for="work-order">Order</label>
+                                <input id="work-order" min="0" type="number" value="1" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-8">
+                                <label for="work-image-url">Image URL or Cloudinary Delivery Path *</label>
+                                <input id="work-image-url" oninput="app.updateWorkPreview()"
+                                    placeholder="https://res.cloudinary.com/... or assets/images/case-studies/01.webp"
+                                    required="" type="text" />
+                                <small style="display:block; margin-top:5px; color:#64748B; font-size:11px;">
+                                    <i class="fa-regular fa-cloud" style="color:#1363DF;"></i> Cloudinary image link
+                                    paste karein (e.g. <code>https://res.cloudinary.com/...</code>). Live preview turant
+                                    update hoga.
+                                </small>
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="work-image-alt">Image Alt Text *</label>
+                                <input id="work-image-alt" placeholder="Descriptive alt text" required="" type="text" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="work-desc">Description / Technical Summary</label>
+                            <textarea id="work-desc" oninput="app.updateWorkPreview()"
+                                placeholder="Architectural approach and technical details..." rows="3"></textarea>
+                        </div>
+                        <!-- LIVE PREVIEW BOX -->
+                        <div class="job-preview-container">
+                            <span class="preview-badge">Live Public Card Preview</span>
+                            <div
+                                style="background: #FFFFFF; border-radius: 8px; border: 1px solid #E2E8F0; padding: 20px; max-width: 440px;">
+                                <div
+                                    style="height: 180px; background: #081836; border-radius: 6px; overflow: hidden; margin-bottom: 14px;">
+                                    <img alt="preview" id="work-prev-img" src="assets/images/case-studies/01.webp"
+                                        style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                                <span id="work-prev-cat"
+                                    style="font-size: 12px; color: #1363DF; font-weight: 600;">Website Development,
+                                    Performance</span>
+                                <h4 id="work-prev-title"
+                                    style="font-size: 16px; color: #081836; margin: 6px 0 10px 0; font-weight: 700;">
+                                    High-Performance Responsive Web Portals</h4>
+                                <div class="rts-btn btn-border"
+                                    style="display: inline-block; padding: 6px 14px; font-size: 12px; border: 1px solid #E2E8F0; border-radius: 4px;">
+                                    View Technical Approach <i class="fa-regular fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" onclick="app.closeModal('work-modal')"
+                            type="button">Cancel</button>
+                        <button class="btn btn-primary" id="work-submit-btn" type="submit">Save Work Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEDIA PICKER MODAL FOR VIDEO SHOWCASE -->
+    <div class="modal-backdrop" id="modal-video-media-picker" style="display: none;">
+        <div class="modal" style="max-width: 820px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 class="font-bold text-lg" style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-regular fa-images text-primary"></i> Choose Showcase Background Image
+                </h3>
+                <button class="modal-close" onclick="app.closeVideoMediaPicker()"><i
+                        class="fa-regular fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 18px;">
+                <p class="text-xs text-muted mb-3">Click on any image from your media library below to immediately
+                    select it as the background for the homepage video section:</p>
+                <div id="video-media-picker-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px;">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between align-items-center">
+                <span class="text-xs text-muted">You can also paste any custom Cloudinary URL directly in the input
+                    box.</span>
+                <button class="btn btn-secondary" onclick="app.closeVideoMediaPicker()" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/static/admin.js"></script>
+</body>
+
+</html>
