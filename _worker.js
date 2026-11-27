@@ -176,8 +176,20 @@ async function querySupabase(env, path, options = {}) {
 
 export default {
     async fetch(request, env, ctx) {
-        const url = new URL(request.url);
-        const secretKey = getEnvVar(env, 'CMS_SECRET_KEY', 'insecure-placeholder-set-cms-secret-key-in-env');
+        try {
+            return await handleRequest(request, env, ctx);
+        } catch (err) {
+            return new Response(`Worker Error: ${err && err.stack ? err.stack : err}`, {
+                status: 500,
+                headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+            });
+        }
+    }
+};
+
+async function handleRequest(request, env, ctx) {
+    const url = new URL(request.url);
+    const secretKey = getEnvVar(env, 'CMS_SECRET_KEY', 'insecure-placeholder-set-cms-secret-key-in-env');
 
         // 1. CORS Preflight
         if (request.method === 'OPTIONS') {
@@ -296,8 +308,7 @@ export default {
 
         // 9. Fallback: Serve static assets directly from Cloudflare Edge
         return env.ASSETS.fetch(request);
-    }
-};
+}
 
 // ----------------- AUTH HANDLERS -----------------
 
@@ -1017,8 +1028,7 @@ async function handleCrud(request, url, path, env, table) {
 // ----------------- EDGE SSR WITH HTMLREWRITER -----------------
 
 async function handleHomepageSSR(request, env) {
-    const assetUrl = new URL('/index.html', request.url);
-    const response = await env.ASSETS.fetch(new Request(assetUrl.toString(), { method: 'GET' }));
+    const response = await env.ASSETS.fetch(request);
     if (!response.ok) return response;
 
     try {
@@ -1118,7 +1128,7 @@ async function handleHomepageSSR(request, env) {
             headers: newHeaders
         });
     } catch (err) {
-        const fallback = await env.ASSETS.fetch(new Request(assetUrl.toString(), { method: 'GET' }));
+        const fallback = await env.ASSETS.fetch(request);
         const headers = new Headers(fallback.headers);
         headers.set('X-SSR-Error', String(err && err.message ? err.message : err));
         headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
