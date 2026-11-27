@@ -1,146 +1,105 @@
-# 🚀 Codozent Production Deployment Guide (100% Free Hybrid Architecture)
+# 🚀 Codozent Technologies: 100% Cloudflare Edge Worker Deployment Guide
 
-This guide takes you step-by-step from code to a live production deployment:
-- **Database**: Supabase PostgreSQL (Already migrated & active! ✅)
-- **Backend API & Admin Panel**: Render.com (Free Tier)
-- **Public Website Frontend**: Cloudflare Pages (Free Tier - Unlimited Bandwidth)
-- **Images & Media**: Cloudinary CDN
-- **24/7 Always Awake**: UptimeRobot (Free ping monitor)
-
----
-
-## Step 1: Push Your Code to GitHub (2 Minutes)
-
-Open your terminal in `D:\luminos` and run:
-
-```bash
-# 1. Initialize git
-git init
-
-# 2. Add all files (.gitignore automatically protects your .env and credentials)
-git add .
-
-# 3. Commit
-git commit -m "feat: production codozent website with pure supabase backend"
-
-# 4. Rename main branch
-git branch -M main
-
-# 5. Connect to your GitHub repository (replace with your repo URL)
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME.git
-
-# 6. Push code
-git push -u origin main
-```
+This guide explains how your production website and CMS run entirely on **Cloudflare Edge Workers + Supabase REST API**:
+- **0ms Cold Starts**: Never goes to sleep (unlike free VMs like Render).
+- **Unlimited Scalability & Global CDN**: Served from 330+ Cloudflare edge locations worldwide.
+- **Edge Server-Side Rendering (SSR)**: Dynamic live content rendered directly at the edge via Cloudflare `HTMLRewriter`.
+- **Pure Cloudflare Hosting**: No Python backend server needed in production; all authentication, APIs, and CMS logic are executed inside `_worker.js`.
+- **Zero Secrets on GitHub**: All credentials are provided exclusively via Cloudflare Environment Variables & Secrets.
 
 ---
 
-## Step 2: Deploy Backend to Render.com (Free Tier)
+## 🔑 The 5 Environment Variables Needed in Cloudflare
 
-1. Go to [https://dashboard.render.com](https://dashboard.render.com) and log in.
-2. Click **"New +"** (top-right) -> select **"Web Service"**.
-3. Choose **"Build and deploy from a Git repository"** and connect your GitHub repo.
-4. Fill in the settings:
-   - **Name**: `codozent-backend` (or any name you choose)
-   - **Region**: Choose closest to you (e.g. `Singapore` or `Oregon`)
-   - **Branch**: `main`
-   - **Runtime**: `Python 3`
-   - **Build Command**:
-     ```bash
-     pip install --upgrade pip && pip install -r requirements.txt
-     ```
-   - **Start Command**:
-     ```bash
-     uvicorn cms.server:app --host 0.0.0.0 --port $PORT
-     ```
-   - **Instance Type**: Select **"Free"** ($0/month)
+You ONLY need to add these **5 variables** in Cloudflare. No other variables are required!
 
-5. Scroll down to **"Environment Variables"** and click **"Add Environment Variable"**:
+| Variable Name | Type | Example / Value | Where to find it / Description |
+|---|---|---|---|
+| `SUPABASE_URL` | Plain text | `https://[YOUR-PROJECT-REF].supabase.co` | From your Supabase Dashboard -> **Project Settings** -> **API** -> **Project URL** |
+| `SUPABASE_KEY` | Secret | `eyJhbGciOi...` | From Supabase Dashboard -> **Project Settings** -> **API** -> `service_role` secret key (recommended) or `anon` public key |
+| `ADMIN_EMAIL` | Plain text | `codozent.help@gmail.com` | The email you want to use to log in to the admin panel |
+| `ADMIN_PASSWORD` | Secret | `[YOUR-STRONG-PASSWORD]` | The password you want to use to log in to the admin panel |
+| `CMS_SECRET_KEY` | Secret | `[YOUR-32-CHAR-RANDOM-SECRET-STRING]` | Any random 32+ character string used to encrypt JWT login sessions |
 
-| Key | Value | Description |
-|---|---|---|
-| `DATABASE_URL` | `postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres` | Your live Supabase connection string |
-| `ENVIRONMENT` | `production` | Production mode |
-| `ADMIN_EMAIL` | `codozent.help@gmail.com` | Verified admin email |
-| `ADMIN_INITIAL_PASSWORD` | *(Your admin password)* | Admin password |
-| `CMS_SECRET_KEY` | *(Click "Generate" or type 32 random letters)* | Session encryption key |
-| `CORS_ORIGINS` | `https://codozent.com,https://www.codozent.com` | Allowed frontend domains |
-| `CLOUDINARY_CLOUD_NAME` | *(Your Cloudinary cloud name)* | From your Cloudinary dashboard |
-| `CLOUDINARY_API_KEY` | *(Your Cloudinary API key)* | From your Cloudinary dashboard |
-| `CLOUDINARY_API_SECRET` | *(Your Cloudinary API secret)* | From your Cloudinary dashboard |
+> [!IMPORTANT]
+> **No `DATABASE_URL` is needed!**
+> Cloudflare Workers connect directly to Supabase via lightweight HTTPS REST APIs over port 443, eliminating database connection pooling issues and timeout errors.
 
-6. Click **"Create Web Service"**.
-7. Wait ~2-3 minutes for Render to build and deploy. Once finished, Render will give you a public URL like:
+---
+
+## 🛠️ Step-by-Step Cloudflare Configuration
+
+### Step 1: Open Your Worker in Cloudflare Dashboard
+1. Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/).
+2. In the left navigation menu, click **Workers & Pages**.
+3. Click on your project: **`codozent-website`**.
+
+---
+
+### Step 2: Add Environment Variables & Secrets
+1. Inside your `codozent-website` project, click on the **Settings** tab.
+2. Select **Variables and Secrets** from the sub-menu.
+3. Click **Add** (or **Add Variable**) for each of the 5 variables:
+   - Name: `SUPABASE_URL` | Value: `https://[YOUR-PROJECT-REF].supabase.co` | Click **Save**
+   - Name: `SUPABASE_KEY` | Value: *(Paste your Supabase service_role key)* | Click **Encrypt** -> Click **Save**
+   - Name: `ADMIN_EMAIL` | Value: `codozent.help@gmail.com` | Click **Save**
+   - Name: `ADMIN_PASSWORD` | Value: *(Your chosen admin password)* | Click **Encrypt** -> Click **Save**
+   - Name: `CMS_SECRET_KEY` | Value: *(32+ character random string)* | Click **Encrypt** -> Click **Save**
+4. If there is a **Deploy** or **Save and Deploy** button at the bottom, click it to activate your new variables.
+
+---
+
+### Step 3: Connect Your Custom Domain (`codozent.com`)
+1. In the same project under **Settings**, click **Domains & Routes**.
+2. Click **Add** -> select **Custom Domain**.
+3. Type: `codozent.com` and click **Add Custom Domain**.
+4. Repeat to add: `www.codozent.com`.
+5. Cloudflare will automatically configure the SSL certificate and route all traffic to your worker.
+
+---
+
+### Step 4: Verify Your Live Edge Worker
+1. **Health & Configuration Check:**
+   Open in your browser:
    ```text
-   https://codozent-backend.onrender.com
+   https://codozent.com/api/health
    ```
-8. **Verify Backend Health**: Open in your browser:
-   `https://codozent-backend.onrender.com/api/health`
-   You should see:
-   `{"status": "healthy", "service": "codozent-cms", "database": {"status": "ok", "engine": "supabase_postgresql"}}`
-
----
-
-## Step 3: Connect Cloudflare Pages Proxy Rule
-
-Once you have your Render URL (e.g., `https://codozent-backend.onrender.com`):
-
-Open your local file `_redirects` and update line 9-11 with your Render URL:
-```text
-/api/*   https://codozent-backend.onrender.com/api/:splat   200
-/admin   https://codozent-backend.onrender.com/admin        200
-/admin/* https://codozent-backend.onrender.com/admin/:splat 200
-```
-Commit and push this change to GitHub:
-```bash
-git add _redirects
-git commit -m "chore: point cloudflare proxy to render backend"
-git push
-```
-
----
-
-## Step 4: Deploy Frontend to Cloudflare Pages (3 Minutes)
-
-1. Go to [https://dash.cloudflare.com](https://dash.cloudflare.com) and log in.
-2. In the left menu, click **Workers & Pages** -> **Overview** -> **Create application**.
-3. Select the **"Pages"** tab -> click **"Connect to Git"**.
-4. Select your GitHub repository.
-5. In **Set up builds and deployments**:
-   - **Project name**: `codozent` (or `codozent-frontend`)
-   - **Production branch**: `main`
-   - **Framework preset**: `None`
-   - **Build command**: *(Leave blank - pure static HTML/CSS/JS)*
-   - **Build output directory**: `.` *(single dot, meaning root directory)*
-6. Click **"Save and Deploy"**.
-7. Cloudflare Pages will deploy your website in less than 30 seconds! It will give you a live URL like:
+   You will receive a real-time diagnostics response confirming:
+   ```json
+   {
+     "status": "healthy",
+     "service": "Codozent Cloudflare Edge Worker",
+     "config": {
+       "SUPABASE_URL": "CONFIGURED",
+       "SUPABASE_KEY": "CONFIGURED",
+       "ADMIN_EMAIL": "CONFIGURED",
+       "ADMIN_PASSWORD": "CONFIGURED",
+       "CMS_SECRET_KEY": "CONFIGURED"
+     },
+     "database_status": "CONNECTED"
+   }
+   ```
+2. **Access Admin Panel:**
+   Open:
    ```text
-   https://codozent.pages.dev
+   https://codozent.com/admin
    ```
+   - It will automatically redirect to `/admin/login` if you are not signed in.
+   - Enter your `ADMIN_EMAIL` (`codozent.help@gmail.com`) and your `ADMIN_PASSWORD`.
+   - You will be logged into the Codozent Admin Dashboard (`https://codozent.com/admin`).
+
+3. **Verify Admin-to-Frontend Sync:**
+   - In the Admin Panel, go to **Video Section** or **Homepage Images**.
+   - Make a change (e.g. toggle video or update alt text) and click **Save**.
+   - Open `https://codozent.com` in an incognito window: your changes are immediately live on the homepage without needing a site rebuild or delay!
 
 ---
 
-## Step 5: Setup Custom Domain (e.g., codozent.com)
+## 🔒 Security Best Practice: Rotate Supabase Database Password
 
-In your Cloudflare Pages dashboard:
-1. Go to **Custom domains** tab -> click **"Set up a custom domain"**.
-2. Enter `codozent.com` and `www.codozent.com`.
-3. Cloudflare will automatically configure the SSL certificate and DNS.
-4. Now your website will load on `https://codozent.com` and your admin panel will be at `https://codozent.com/admin`!
-
----
-
-## Step 6: Keep Render 24/7 Awake with UptimeRobot (Free)
-
-Render Free web services sleep after 15 minutes of inactivity. To keep your API instantly fast 24/7 without ever sleeping:
-
-1. Go to [https://uptimerobot.com](https://uptimerobot.com) and create a free account.
-2. Click **"+ Add New Monitor"**.
-3. Choose:
-   - **Monitor Type**: `HTTP(s)`
-   - **Friendly Name**: `Codozent Backend API`
-   - **URL**: `https://codozent-backend.onrender.com/api/health`
-   - **Monitoring Interval**: `5 minutes`
-4. Click **"Create Monitor"**.
-
-Done! UptimeRobot will ping your backend every 5 minutes. Render will see active traffic and will **never sleep**!
+Because older git commit attempts had strings exposed in previous commits prior to our history squash, perform this 1-minute rotation in Supabase:
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard) -> Select your project (`mgpbwahtkyrfxydovrwu`).
+2. Go to **Project Settings** -> **Database**.
+3. Scroll to **Database password** and click **Reset Database Password**.
+4. Choose a fresh new strong password.
+5. Your Cloudflare Worker uses `SUPABASE_KEY` (API REST key), so resetting the PostgreSQL database password will **NOT** affect your Cloudflare website or CMS!

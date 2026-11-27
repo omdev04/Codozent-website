@@ -1,10 +1,11 @@
-# Codozent Technologies - Official Website & CMS
+# Codozent Technologies - Official Website & Cloudflare Edge CMS
 
-Modern, high-performance digital platform for **Codozent Technologies**, built with a hybrid production architecture:
-- **Frontend**: Clean semantic HTML5, CSS3, modern JavaScript, optimized for Cloudflare Pages (Global CDN, 100% uptime).
-- **Backend & CMS**: Python FastAPI service with full headless CMS capabilities, hosted on Render.com.
-- **Database**: Supabase Cloud PostgreSQL with SSL transaction pooling.
-- **Media & Assets**: Cloudinary CDN with automatic WebP conversion and responsive delivery.
+Modern, high-performance digital platform for **Codozent Technologies**, powered by **Cloudflare Edge Workers** and **Supabase**:
+- **Edge Architecture**: 100% serverless on Cloudflare Edge Worker (`_worker.js`) with 0ms cold starts and global distribution across 330+ locations.
+- **Edge Server-Side Rendering (SSR)**: Dynamic SEO hydration using Cloudflare `HTMLRewriter` for instant live content synchronization.
+- **Direct Supabase Integration**: REST API connectivity directly from edge nodes with zero database connection pooler bottlenecks.
+- **Integrated Admin CMS**: Full-featured admin dashboard accessible at `/admin` for updating homepage video, imagery, blogs, and career listings.
+- **Security-First**: Zero credentials in source code or Git history. All secrets are managed via Cloudflare Environment Variables & Secrets.
 
 ---
 
@@ -12,47 +13,39 @@ Modern, high-performance digital platform for **Codozent Technologies**, built w
 
 ```mermaid
 graph LR
-    User[Visitor / Client] -->|HTTPS| CloudflarePages[Cloudflare Pages - codozent.com]
-    Admin[Site Administrator] -->|/admin| CloudflareProxy[Cloudflare Reverse Proxy]
-    CloudflareProxy -->|Encrypted API| RenderBackend[Render Backend API - FastAPI]
-    RenderBackend -->|SSL Pooler :5432 / :6543| SupabaseDB[(Supabase PostgreSQL)]
-    RenderBackend -->|Asset Delivery| Cloudinary[Cloudinary CDN]
+    Visitor[Client / Visitor] -->|HTTPS| CloudflareWorker[Cloudflare Edge Worker - codozent.com]
+    AdminUser[Administrator] -->|/admin| CloudflareWorker
+    CloudflareWorker -->|Edge HTMLRewriter| StaticAssets[Cloudflare Static Assets]
+    CloudflareWorker -->|HTTPS REST API| Supabase[(Supabase Cloud Database)]
 ```
 
 ---
 
-## Deployment Setup
+## Quick Links
 
-For detailed instructions on deploying this project on **Render** and **Cloudflare Pages**, see:
-- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - End-to-end deployment instructions
-- [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md) - Supabase cloud database configuration
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Complete guide for setting up Cloudflare environment variables, custom domain, and admin access.
+- [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md) - Supabase schema and database instructions.
 
 ---
 
-## Local Development
+## Environment Variables (Cloudflare Dashboard)
 
-1. Create and activate a Python virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Or on Windows: .\venv\Scripts\activate
-   ```
+Set these 5 variables in your Cloudflare Worker project settings (**Settings** -> **Variables and Secrets**):
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+1. `SUPABASE_URL`: Your Supabase Project URL (`https://[YOUR-PROJECT-REF].supabase.co`)
+2. `SUPABASE_KEY`: Your Supabase `service_role` (or `anon`) key
+3. `ADMIN_EMAIL`: `codozent.help@gmail.com`
+4. `ADMIN_PASSWORD`: Your admin login password
+5. `CMS_SECRET_KEY`: Random 32+ character string for JWT session encryption
 
-3. Configure your `.env` file with your Supabase credentials (see `.env.example`).
+---
 
-4. Start the development server:
-   ```bash
-   python -m uvicorn cms.server:app --host 127.0.0.1 --port 8000 --reload
-   ```
+## Health Check
 
-5. Access the application:
-   - **Public Website**: `http://127.0.0.1:8000/`
-   - **Admin CMS Panel**: `http://127.0.0.1:8000/admin`
-   - **API Health Check**: `http://127.0.0.1:8000/api/health`
+To verify edge worker status and live database connectivity:
+```text
+GET https://codozent.com/api/health
+```
 
 ---
 
