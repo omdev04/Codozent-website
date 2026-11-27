@@ -1017,100 +1017,113 @@ async function handleCrud(request, url, path, env, table) {
 // ----------------- EDGE SSR WITH HTMLREWRITER -----------------
 
 async function handleHomepageSSR(request, env) {
-    const response = await env.ASSETS.fetch(request);
+    const assetUrl = new URL('/index.html', request.url);
+    const response = await env.ASSETS.fetch(new Request(assetUrl.toString(), { method: 'GET' }));
     if (!response.ok) return response;
 
-    const [videoRow, pagesRow, imagesRows] = await Promise.all([
-        querySupabase(env, 'homepage_video_section?id=eq.1&select=*').catch(() => null),
-        querySupabase(env, 'pages?page_key=eq.index&limit=1').catch(() => null),
-        querySupabase(env, 'homepage_images?select=*').catch(() => null)
-    ]);
+    try {
+        const [videoRow, pagesRow, imagesRows] = await Promise.all([
+            querySupabase(env, 'homepage_video_section?id=eq.1&select=*').catch(() => null),
+            querySupabase(env, 'pages?page_key=eq.index&limit=1').catch(() => null),
+            querySupabase(env, 'homepage_images?select=*').catch(() => null)
+        ]);
 
-    const videoData = videoRow?.[0];
-    const pageData = pagesRow?.[0];
-    let fields = {};
-    try { fields = JSON.parse(pageData?.fields_json || '{}'); } catch {}
+        const videoData = videoRow?.[0];
+        const pageData = pagesRow?.[0];
+        let fields = {};
+        try { fields = JSON.parse(pageData?.fields_json || '{}'); } catch {}
 
-    let rewriter = new HTMLRewriter();
+        let rewriter = new HTMLRewriter();
 
-    if (fields.hero_badge) {
-        const val = fields.hero_badge.current_value || fields.hero_badge.draft_value;
-        if (val) rewriter = rewriter.on('span.pre-title', { element(e) { e.setInnerContent(val); } });
-    }
-
-    if (fields.hero_title) {
-        const val = fields.hero_title.current_value || fields.hero_title.draft_value;
-        if (val) {
-            rewriter = rewriter.on('h1.title', {
-                element(e) {
-                    if (val.includes('Growing')) {
-                        const parts = val.split('Growing');
-                        e.setInnerContent(`${parts[0]}<span>Growing</span>${parts[1] || ''}`, { html: true });
-                    } else {
-                        e.setInnerContent(val);
-                    }
-                }
-            });
+        if (fields.hero_badge) {
+            const val = fields.hero_badge.current_value || fields.hero_badge.draft_value;
+            if (val) rewriter = rewriter.on('span.pre-title', { element(e) { e.setInnerContent(String(val)); } });
         }
-    }
 
-    if (fields.hero_desc) {
-        const val = fields.hero_desc.current_value || fields.hero_desc.draft_value;
-        if (val) rewriter = rewriter.on('div.banner-wrapper-one p', { element(e) { e.setInnerContent(val); } });
-    }
-
-    if (videoData) {
-        const isVideoOn = Boolean(videoData.video_enabled);
-        const imgUrl = videoData.image_url || 'assets/images/video/01.webp';
-        const imgAlt = videoData.image_alt || 'Engineering Process';
-
-        rewriter = rewriter.on('div.image--large-video img', {
-            element(e) {
-                e.setAttribute('src', imgUrl);
-                e.setAttribute('alt', imgAlt);
-            }
-        });
-
-        if (!isVideoOn) {
-            rewriter = rewriter.on('div.image--large-video div.vedio-icone', {
-                element(e) {
-                    e.setAttribute('style', 'display: none !important;');
-                }
-            });
-        } else if (videoData.video_url) {
-            rewriter = rewriter.on('div.image--large-video a.popup-video', {
-                element(e) {
-                    e.setAttribute('href', videoData.video_url);
-                }
-            });
-        }
-    }
-
-    if (imagesRows && Array.isArray(imagesRows)) {
-        imagesRows.forEach(slot => {
-            const isHomepage = !slot.page_path || slot.page_path === 'index.html' || slot.page_path === '*';
-            if (isHomepage && slot.target_type !== 'bg' && slot.selector && slot.current_src) {
-                try {
-                    rewriter = rewriter.on(slot.selector, {
-                        element(e) {
-                            e.setAttribute('src', slot.current_src);
-                            if (slot.current_alt) e.setAttribute('alt', slot.current_alt);
+        if (fields.hero_title) {
+            const val = fields.hero_title.current_value || fields.hero_title.draft_value;
+            if (val) {
+                const strVal = String(val);
+                rewriter = rewriter.on('h1.title', {
+                    element(e) {
+                        if (strVal.includes('Growing')) {
+                            const parts = strVal.split('Growing');
+                            e.setInnerContent(`${parts[0]}<span>Growing</span>${parts[1] || ''}`, { html: true });
+                        } else {
+                            e.setInnerContent(strVal);
                         }
-                    });
-                } catch {}
+                    }
+                });
             }
+        }
+
+        if (fields.hero_desc) {
+            const val = fields.hero_desc.current_value || fields.hero_desc.draft_value;
+            if (val) rewriter = rewriter.on('div.banner-wrapper-one p', { element(e) { e.setInnerContent(String(val)); } });
+        }
+
+        if (videoData) {
+            const isVideoOn = Boolean(videoData.video_enabled);
+            const imgUrl = videoData.image_url || 'assets/images/video/01.webp';
+            const imgAlt = videoData.image_alt || 'Engineering Process';
+
+            rewriter = rewriter.on('div.image--large-video img', {
+                element(e) {
+                    e.setAttribute('src', imgUrl);
+                    e.setAttribute('alt', imgAlt);
+                }
+            });
+
+            if (!isVideoOn) {
+                rewriter = rewriter.on('div.image--large-video div.vedio-icone', {
+                    element(e) {
+                        e.setAttribute('style', 'display: none !important;');
+                    }
+                });
+            } else if (videoData.video_url) {
+                rewriter = rewriter.on('div.image--large-video a.popup-video', {
+                    element(e) {
+                        e.setAttribute('href', videoData.video_url);
+                    }
+                });
+            }
+        }
+
+        if (imagesRows && Array.isArray(imagesRows)) {
+            imagesRows.forEach(slot => {
+                const isHomepage = !slot.page_path || slot.page_path === 'index.html' || slot.page_path === '*';
+                if (isHomepage && slot.target_type !== 'bg' && slot.selector && slot.current_src) {
+                    try {
+                        rewriter = rewriter.on(slot.selector, {
+                            element(e) {
+                                e.setAttribute('src', slot.current_src);
+                                if (slot.current_alt) e.setAttribute('alt', slot.current_alt);
+                            }
+                        });
+                    } catch {}
+                }
+            });
+        }
+
+        const transformedResponse = rewriter.transform(response);
+        const bodyText = await transformedResponse.text();
+        const newHeaders = new Headers(transformedResponse.headers);
+        newHeaders.delete('Content-Length');
+        newHeaders.set('Content-Type', 'text/html; charset=utf-8');
+        newHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        newHeaders.set('X-Powered-By', 'Cloudflare-Worker-Codozent');
+
+        return new Response(bodyText, {
+            status: 200,
+            headers: newHeaders
         });
+    } catch (err) {
+        const fallback = await env.ASSETS.fetch(new Request(assetUrl.toString(), { method: 'GET' }));
+        const headers = new Headers(fallback.headers);
+        headers.set('X-SSR-Error', String(err && err.message ? err.message : err));
+        headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        return new Response(fallback.body, { status: fallback.status, headers });
     }
-
-    const transformedResponse = rewriter.transform(response);
-    const newHeaders = new Headers(transformedResponse.headers);
-    newHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    newHeaders.set('X-Powered-By', 'Cloudflare-Worker-Codozent');
-
-    return new Response(transformedResponse.body, {
-        status: transformedResponse.status,
-        headers: newHeaders
-    });
 }
 
 async function handleBlogDetailsSSR(request, env, slug) {
