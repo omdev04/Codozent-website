@@ -8,19 +8,24 @@
  * - All secrets and credentials read strictly from Cloudflare Environment Variables / Secrets
  */
 
+import buildEnv from './_env_generated.js';
+
 // ----------------- ENVIRONMENT HELPER -----------------
 
 function getEnvVar(env, key, defaultVal = '') {
-    if (env && typeof env[key] !== 'undefined' && env[key] !== null) {
+    if (env && typeof env[key] !== 'undefined' && env[key] !== null && String(env[key]).trim() !== '') {
         return String(env[key]);
     }
+    if (typeof buildEnv !== 'undefined' && buildEnv && typeof buildEnv[key] !== 'undefined' && buildEnv[key] !== null && String(buildEnv[key]).trim() !== '') {
+        return String(buildEnv[key]);
+    }
     try {
-        if (typeof globalThis !== 'undefined' && typeof globalThis[key] !== 'undefined' && globalThis[key] !== null) {
+        if (typeof globalThis !== 'undefined' && typeof globalThis[key] !== 'undefined' && globalThis[key] !== null && String(globalThis[key]).trim() !== '') {
             return String(globalThis[key]);
         }
     } catch {}
     try {
-        if (typeof process !== 'undefined' && process.env && typeof process.env[key] !== 'undefined' && process.env[key] !== null) {
+        if (typeof process !== 'undefined' && process.env && typeof process.env[key] !== 'undefined' && process.env[key] !== null && String(process.env[key]).trim() !== '') {
             return String(process.env[key]);
         }
     } catch {}

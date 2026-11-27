@@ -10,3 +10,5 @@ requirements.txt
 *.py
 *.bak
 *.md
+build-env.js
+_env_generated.js

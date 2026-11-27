@@ -8,5 +8,8 @@
   },
   "assets": {
     "directory": "."
+  },
+  "build": {
+    "command": "node build-env.js"
   }
 }
