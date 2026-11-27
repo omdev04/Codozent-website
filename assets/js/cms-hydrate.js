@@ -38,14 +38,14 @@
 
     // 1. Hydrate Page Text Fields (Hero headline, descriptions, badges, philosophy)
     async function hydratePageText() {
-        const path = window.location.pathname.toLowerCase();
+        const path = window.location.pathname.toLowerCase().replace(/\.html$/, '');
         let pageKey = 'index';
-        if (path.includes('about.html')) pageKey = 'about';
-        else if (path.includes('service.html')) pageKey = 'service';
-        else if (path.includes('products.html')) pageKey = 'products';
-        else if (path.includes('career.html')) pageKey = 'career';
-        else if (path.includes('contact.html')) pageKey = 'contact';
-        else if (path.includes('blog.html')) pageKey = 'blog';
+        if (path.endsWith('/about')) pageKey = 'about';
+        else if (path.endsWith('/service')) pageKey = 'service';
+        else if (path.endsWith('/products')) pageKey = 'products';
+        else if (path.endsWith('/career')) pageKey = 'career';
+        else if (path.endsWith('/contact')) pageKey = 'contact';
+        else if (path.endsWith('/blog')) pageKey = 'blog';
 
         const data = await fetchJson(`/api/public/pages/${pageKey}`);
         if (!data || !data.success || !data.page || !data.page.fields) return;
@@ -187,13 +187,13 @@
         const data = await fetchJson('/api/public/homepage-images');
         if (!data || !data.success || !Array.isArray(data.images)) return;
 
-        const rawPath = window.location.pathname.split('/').pop() || 'index.html';
-        const pageFile = rawPath === '' ? 'index.html' : rawPath.toLowerCase();
+        const rawPath = (window.location.pathname.split('/').pop() || 'index').toLowerCase().replace(/\.html$/, '');
+        const pageKey = rawPath === '' ? 'index' : rawPath;
 
         data.images.forEach(slot => {
             if (!slot.selector || !slot.current_src) return;
-            const slotPage = (slot.page_path || 'index.html').toLowerCase();
-            if (slotPage !== '*' && slotPage !== pageFile) return;
+            const slotPage = (slot.page_path || 'index.html').toLowerCase().replace(/\.html$/, '');
+            if (slotPage !== '*' && slotPage !== pageKey) return;
 
             try {
                 const els = document.querySelectorAll(slot.selector);
@@ -284,7 +284,8 @@
         const data = await fetchJson('/api/public/blog');
         if (!data || !data.success || !Array.isArray(data.posts) || data.posts.length === 0) return;
 
-        const isBlogListPage = window.location.pathname.toLowerCase().includes('blog.html') || window.location.pathname.toLowerCase().includes('blog-grid.html');
+        const cleanPath = window.location.pathname.toLowerCase().replace(/\.html$/, '');
+        const isBlogListPage = cleanPath.endsWith('/blog') || cleanPath.endsWith('/blog-grid');
         const rowContainer = cards[0].closest('.row');
         if (isBlogListPage && rowContainer && data.posts.length > cards.length) {
             const templateCol = cards[cards.length - 1].closest('[class*="col-"]');
