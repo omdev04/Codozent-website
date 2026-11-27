@@ -187,6 +187,23 @@ export default {
     }
 };
 
+async function fetchAsset(env, request, targetPath) {
+    let currentUrl = new URL(targetPath, request.url);
+    for (let i = 0; i < 3; i++) {
+        const res = await env.ASSETS.fetch(new Request(currentUrl.toString(), { method: 'GET' }));
+        if (res.status >= 300 && res.status < 400) {
+            const loc = res.headers.get('Location');
+            if (!loc) return res;
+            currentUrl = new URL(loc, currentUrl);
+            continue;
+        }
+        const headers = new Headers(res.headers);
+        headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        return new Response(res.body, { status: res.status, headers });
+    }
+    return env.ASSETS.fetch(new Request(currentUrl.toString(), { method: 'GET' }));
+}
+
 async function handleRequest(request, env, ctx) {
     const url = new URL(request.url);
     const secretKey = getEnvVar(env, 'CMS_SECRET_KEY', 'insecure-placeholder-set-cms-secret-key-in-env');
@@ -278,22 +295,20 @@ async function handleRequest(request, env, ctx) {
         }
 
         // 6. Admin Panel UI Routes (Protected Server-Side)
-        if (url.pathname === '/admin' || url.pathname === '/admin/') {
+        if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
             const session = await getSession(request, secretKey);
             if (!session) {
                 return Response.redirect(`${url.origin}/admin/login`, 302);
             }
-            const adminReq = new Request(new URL('/admin/index.html', request.url), request);
-            return env.ASSETS.fetch(adminReq);
+            return fetchAsset(env, request, '/admin/');
         }
 
-        if (url.pathname === '/admin/login' || url.pathname === '/admin/login/') {
+        if (url.pathname === '/admin/login' || url.pathname === '/admin/login/' || url.pathname === '/admin/login.html') {
             const session = await getSession(request, secretKey);
             if (session) {
-                return Response.redirect(`${url.origin}/admin`, 302);
+                return Response.redirect(`${url.origin}/admin/`, 302);
             }
-            const loginReq = new Request(new URL('/admin/login.html', request.url), request);
-            return env.ASSETS.fetch(loginReq);
+            return fetchAsset(env, request, '/admin/login');
         }
 
         // 7. Dynamic Edge SSR for Homepage (Live sync on load)
