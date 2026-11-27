@@ -732,34 +732,52 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="job-salary">Compensation / Salary (Optional)</label>
+                                <input id="job-salary" placeholder="e.g. ₹8L - ₹14L / Year or Competitive" type="text" />
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="job-deadline">Application Deadline (Optional)</label>
+                                <input id="job-deadline" type="date" />
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label for="job-desc">Job Overview &amp; Description *</label>
                             <textarea id="job-desc"
-                                placeholder="Brief summary of the role and what the candidate will work on..."
+                                placeholder="Summary of the role, team, and what the candidate will work on..."
                                 required="" rows="3"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="job-quals">Required Qualifications &amp; Skills</label>
-                            <textarea id="job-quals" placeholder="Key skills, tech stack, and experience required..."
-                                rows="2"></textarea>
+                            <label for="job-responsibilities">Key Responsibilities</label>
+                            <textarea id="job-responsibilities"
+                                placeholder="List key day-to-day responsibilities (one per line or HTML)..."
+                                rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="job-quals">Required Qualifications</label>
+                                <textarea id="job-quals" placeholder="Education, years of experience, and core requirements..."
+                                    rows="3"></textarea>
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="job-skills">Key Skills &amp; Tech Stack</label>
+                                <textarea id="job-skills" placeholder="e.g. React, TypeScript, Node.js, PostgreSQL, Cloudflare..."
+                                    rows="3"></textarea>
+                            </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-4">
                                 <label for="job-apply-label">Apply Button Label</label>
-                                <input id="job-apply-label" type="text" value="Apply for Role" />
+                                <input id="job-apply-label" type="text" value="Apply Now at Codozent" />
                             </div>
                             <div class="form-group col-8">
                                 <label for="job-apply-url">Application URL / Apply Link *</label>
                                 <input id="job-apply-url"
-                                    placeholder="https://forms.gle/... or mailto:codozent.help@gmail.com" required=""
-                                    type="text" />
-                                <small class="form-hint">Must begin with <code>https://</code>, <code>http://</code>, or
-                                    <code>mailto:</code></small>
+                                    placeholder="apply.html (built-in form) or https://forms.gle/..." required=""
+                                    type="text" value="apply.html" />
+                                <small class="form-hint">Use <code>apply.html</code> for built-in portal, or <code>https://</code> / <code>mailto:</code></small>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="job-deadline">Application Deadline (Optional)</label>
-                            <input id="job-deadline" type="date" />
                         </div>
                         <!-- LIVE PREVIEW BOX -->
                         <div class="job-preview-container">
@@ -836,8 +854,23 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group col-6">
+                                <label for="blog-tags">Tags (comma-separated)</label>
+                                <input id="blog-tags" placeholder="e.g. Cloud, Architecture, Performance" type="text" />
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="blog-published-date">Published Date</label>
+                                <input id="blog-published-date" type="date" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
                                 <label for="blog-image">Featured Image Path *</label>
-                                <input id="blog-image" required="" type="text" value="assets/images/blog/01.webp" />
+                                <div style="display: flex; gap: 6px;">
+                                    <input id="blog-image" required="" type="text" value="assets/images/blog/01.webp" oninput="app.updateBlogImagePreview(this.value)" />
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="app.pickBlogFeaturedImage()" title="Pick from Media Library">
+                                        <i class="fa-regular fa-images"></i> Pick
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group col-6">
                                 <label for="blog-image-alt">Featured Image Alt Text *</label>
@@ -850,9 +883,18 @@
                                 rows="2"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="blog-body">Article Content (HTML allowed) *</label>
+                            <label for="blog-body">Article Content (HTML Formatting Supported) *</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; padding: 6px 8px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px;">
+                                <button type="button" class="btn btn-outline btn-sm" onclick="app.insertBlogTag('h2')">H2</button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="app.insertBlogTag('h3')">H3</button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="app.insertBlogTag('p')">Paragraph</button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="app.insertBlogTag('strong')"><b>Bold</b></button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="app.insertBlogTag('em')"><i>Italic</i></button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="app.insertBlogTag('ul')">Bullet List</button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="app.insertBlogTag('a')">Link</button>
+                            </div>
                             <textarea id="blog-body" placeholder="&lt;p&gt;Full article content...&lt;/p&gt;"
-                                required="" rows="6"></textarea>
+                                required="" rows="8"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">

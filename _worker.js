@@ -249,6 +249,9 @@ export default {
         }
 
         // 4. Public API Routes
+        if (url.pathname === '/api/public/apply' && request.method === 'POST') {
+            return handlePublicApply(request, env);
+        }
         if (url.pathname.startsWith('/api/public/')) {
             return handlePublicApi(url, env);
         }
@@ -369,6 +372,49 @@ async function handlePasswordChange(request, env, secretKey) {
     });
 }
 
+// ----------------- PUBLIC APPLICATION HANDLER -----------------
+
+async function handlePublicApply(request, env) {
+    try {
+        const body = await request.json();
+        const firstName = (body.first_name || '').trim();
+        const lastName = (body.last_name || '').trim();
+        const email = (body.email || '').trim();
+        if (!firstName || !lastName || !email) {
+            return jsonResponse({ detail: 'First name, last name, and email are required.' }, 400);
+        }
+
+        const payload = {
+            job_id: body.job_id ? Number(body.job_id) : null,
+            job_title: (body.job_title || 'General Application').trim(),
+            first_name: firstName,
+            last_name: lastName,
+            email,
+            phone: (body.phone || '').trim(),
+            location: (body.location || '').trim(),
+            headline: (body.headline || '').trim(),
+            portfolio_url: (body.portfolio_url || '').trim(),
+            message: (body.message || '').trim(),
+            resume_filename: (body.resume_filename || '').trim(),
+            resume_data: (body.resume_data || '').slice(0, 1500000),
+            status: 'new',
+            created_at: new Date().toISOString()
+        };
+
+        const res = await querySupabaseRaw(env, 'job_applications', {
+            method: 'POST',
+            prefer: 'return=representation',
+            body: payload
+        });
+        if (!res.ok) {
+            return jsonResponse({ detail: `Database error: ${res.error}` }, 500);
+        }
+        return jsonResponse({ success: true, message: 'Application submitted successfully.', application: res.data?.[0] });
+    } catch {
+        return jsonResponse({ detail: 'Invalid application payload.' }, 400);
+    }
+}
+
 // ----------------- PUBLIC API HANDLERS -----------------
 
 async function handlePublicApi(url, env) {
@@ -410,6 +456,15 @@ async function handlePublicApi(url, env) {
     if (path === 'jobs') {
         const rows = await querySupabase(env, 'jobs?status=eq.published&order=id.desc');
         return jsonResponse({ success: true, jobs: rows || [] });
+    }
+
+    if (path.startsWith('jobs/')) {
+        const id = decodeURIComponent(path.replace('jobs/', ''));
+        const rows = await querySupabase(env, `jobs?id=eq.${encodeURIComponent(id)}&status=eq.published&limit=1`);
+        if (rows && rows.length > 0) {
+            return jsonResponse({ success: true, job: rows[0] });
+        }
+        return jsonResponse({ detail: 'Job opening not found' }, 404);
     }
 
     if (path === 'blog') {
@@ -679,6 +734,12 @@ async function handleAdminApi(request, url, env, session) {
     // 9. User Management
     if (path === 'users' || path.startsWith('users/')) {
         return handleUsersAdmin(request, path, env);
+    }
+
+    // 10. Job Applications
+    if (path === 'applications' && method === 'GET') {
+        const rows = await querySupabase(env, 'job_applications?select=id,job_id,job_title,first_name,last_name,email,phone,location,headline,portfolio_url,message,resume_filename,status,created_at&order=id.desc');
+        return jsonResponse({ success: true, applications: rows || [] });
     }
 
     return jsonResponse({ detail: 'Admin action not found' }, 404);

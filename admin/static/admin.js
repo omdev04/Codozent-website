@@ -271,7 +271,8 @@ const app = {
         document.getElementById('job-modal-title').textContent = 'Add New Job Opening';
         document.getElementById('job-form').reset();
         document.getElementById('job-id').value = '';
-        document.getElementById('job-apply-label').value = 'Apply for Role';
+        document.getElementById('job-apply-label').value = 'Apply Now at Codozent';
+        document.getElementById('job-apply-url').value = 'apply.html';
         document.getElementById('job-status').value = 'published';
         this.updateJobPreview();
         this.openModal('job-modal');
@@ -289,11 +290,14 @@ const app = {
             document.getElementById('job-dept').value = job.department;
             document.getElementById('job-loc').value = job.location;
             document.getElementById('job-type').value = job.employment_type;
+            document.getElementById('job-salary').value = job.salary || '';
             document.getElementById('job-desc').value = job.description;
+            document.getElementById('job-responsibilities').value = job.responsibilities || '';
             document.getElementById('job-quals').value = job.qualifications || '';
+            document.getElementById('job-skills').value = job.skills || '';
             document.getElementById('job-deadline').value = job.deadline || '';
-            document.getElementById('job-apply-label').value = job.apply_label || 'Apply for Role';
-            document.getElementById('job-apply-url').value = job.apply_url;
+            document.getElementById('job-apply-label').value = job.apply_label || 'Apply Now at Codozent';
+            document.getElementById('job-apply-url').value = job.apply_url || 'apply.html';
             document.getElementById('job-status').value = job.status;
 
             this.updateJobPreview();
@@ -323,22 +327,24 @@ const app = {
         e.preventDefault();
         const id = document.getElementById('job-id').value;
         const payload = {
-            title: document.getElementById('job-title').value,
-            department: document.getElementById('job-dept').value,
-            location: document.getElementById('job-loc').value,
+            title: document.getElementById('job-title').value.trim(),
+            department: document.getElementById('job-dept').value.trim(),
+            location: document.getElementById('job-loc').value.trim(),
             employment_type: document.getElementById('job-type').value,
-            description: document.getElementById('job-desc').value,
-            qualifications: document.getElementById('job-quals').value,
+            salary: document.getElementById('job-salary').value.trim(),
+            description: document.getElementById('job-desc').value.trim(),
+            responsibilities: document.getElementById('job-responsibilities').value.trim(),
+            qualifications: document.getElementById('job-quals').value.trim(),
+            skills: document.getElementById('job-skills').value.trim(),
             deadline: document.getElementById('job-deadline').value,
-            apply_label: document.getElementById('job-apply-label').value,
-            apply_url: document.getElementById('job-apply-url').value,
+            apply_label: document.getElementById('job-apply-label').value.trim() || 'Apply Now at Codozent',
+            apply_url: document.getElementById('job-apply-url').value.trim() || 'apply.html',
             status: document.getElementById('job-status').value
         };
 
-        // Client-side URL validation before request
-        const url = payload.apply_url.trim();
-        if (!url.startsWith('https://') && !url.startsWith('http://') && !url.startsWith('mailto:')) {
-            this.showToast('Validation Error: Apply link must start with https://, http://, or mailto:', 'error');
+        const url = payload.apply_url;
+        if (!url.startsWith('https://') && !url.startsWith('http://') && !url.startsWith('mailto:') && !url.startsWith('apply.html')) {
+            this.showToast('Validation Error: Apply link must be apply.html or start with https://, http://, or mailto:', 'error');
             return;
         }
 
@@ -1303,6 +1309,28 @@ const app = {
         });
     },
 
+    pickBlogFeaturedImage() {
+        this.openMediaPickerForBlog();
+    },
+
+    insertBlogTag(tag) {
+        const ta = document.getElementById('blog-body');
+        if (!ta) return;
+        const start = ta.selectionStart || 0;
+        const end = ta.selectionEnd || 0;
+        const selected = ta.value.substring(start, end) || (tag === 'ul' ? 'List item' : 'Text here');
+        let snippet = '';
+        if (tag === 'ul') {
+            snippet = `\n<ul>\n  <li>${selected}</li>\n</ul>\n`;
+        } else if (tag === 'a') {
+            snippet = `<a href="https://" target="_blank">${selected}</a>`;
+        } else {
+            snippet = `<${tag}>${selected}</${tag}>`;
+        }
+        ta.value = ta.value.substring(0, start) + snippet + ta.value.substring(end);
+        ta.focus();
+    },
+
     showAddBlogModal() {
         document.getElementById('blog-modal-title').textContent = 'Write New Blog Post';
         document.getElementById('blog-form').reset();
@@ -1310,6 +1338,7 @@ const app = {
         document.getElementById('blog-author').value = 'Codozent Engineering Team';
         document.getElementById('blog-author-role').value = 'Software Architecture';
         document.getElementById('blog-image').value = 'assets/images/blog/01.webp';
+        document.getElementById('blog-published-date').value = new Date().toISOString().slice(0, 10);
         document.getElementById('blog-status').value = 'published';
         this.updateBlogImagePreview('assets/images/blog/01.webp');
         this.openModal('blog-modal');
@@ -1337,6 +1366,8 @@ const app = {
             document.getElementById('blog-category').value = p.category;
             document.getElementById('blog-author').value = p.author;
             document.getElementById('blog-author-role').value = p.author_role || '';
+            document.getElementById('blog-tags').value = p.tags || '';
+            document.getElementById('blog-published-date').value = (p.published_date || '').slice(0, 10);
             document.getElementById('blog-image').value = p.featured_image;
             document.getElementById('blog-image-alt').value = p.featured_image_alt;
             document.getElementById('blog-excerpt').value = p.excerpt;
@@ -1363,6 +1394,8 @@ const app = {
             category: document.getElementById('blog-category').value.trim(),
             author: document.getElementById('blog-author').value.trim(),
             author_role: document.getElementById('blog-author-role').value.trim(),
+            tags: document.getElementById('blog-tags').value.trim(),
+            published_date: document.getElementById('blog-published-date').value || new Date().toISOString().slice(0, 10),
             featured_image: featImg,
             featured_image_alt: document.getElementById('blog-image-alt').value.trim(),
             excerpt: document.getElementById('blog-excerpt').value.trim(),

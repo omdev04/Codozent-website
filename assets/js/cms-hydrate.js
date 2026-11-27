@@ -258,6 +258,20 @@
         const data = await fetchJson('/api/public/blog');
         if (!data || !data.success || !Array.isArray(data.posts) || data.posts.length === 0) return;
 
+        const isBlogListPage = window.location.pathname.toLowerCase().includes('blog.html') || window.location.pathname.toLowerCase().includes('blog-grid.html');
+        const rowContainer = cards[0].closest('.row');
+        if (isBlogListPage && rowContainer && data.posts.length > cards.length) {
+            const templateCol = cards[cards.length - 1].closest('[class*="col-"]');
+            if (templateCol) {
+                while (cards.length < data.posts.length) {
+                    const cloneCol = templateCol.cloneNode(true);
+                    rowContainer.appendChild(cloneCol);
+                    const newCard = cloneCol.querySelector('div.single-blog-area-start');
+                    if (newCard) cards.push(newCard);
+                }
+            }
+        }
+
         cards.forEach((card, idx) => {
             const col = card.closest('[class*="col-"]') || card;
             if (idx >= data.posts.length) {
@@ -305,12 +319,42 @@
 
     // 6. Hydrate Careers / Jobs
     async function hydrateJobs() {
-        const jobContainer = document.querySelector('div.job-openings-container, div.career-accordion');
+        const openingsSection = document.getElementById('openings');
+        const jobContainer = openingsSection ? openingsSection.querySelector('.row.g-5') : document.querySelector('div.job-openings-container, div.career-accordion');
         if (!jobContainer) return;
 
         const data = await fetchJson('/api/public/jobs');
-        if (!data || !data.success) return;
-        // Jobs list hydration handled if container exists
+        if (!data || !data.success || !Array.isArray(data.jobs) || data.jobs.length === 0) return;
+
+        jobContainer.classList.remove('justify-content-center');
+        jobContainer.innerHTML = data.jobs.map(function(job) {
+            const applyUrl = (job.apply_url && !job.apply_url.includes('apply.html') && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://') || job.apply_url.startsWith('mailto:')))
+                ? job.apply_url
+                : `apply.html?job_id=${encodeURIComponent(job.id)}&role=${encodeURIComponent(job.title || '')}`;
+            const applyTarget = (applyUrl.startsWith('http://') || applyUrl.startsWith('https://')) ? ' target="_blank" rel="noopener"' : '';
+            const safeDesc = (job.description || '').replace(/<[^>]*>/g, '').slice(0, 180);
+
+            return `
+            <div class="col-lg-6 col-md-6 col-12">
+                <div class="single-job-opening-card" style="padding: 32px; border: 1px solid #E2E8F0; border-radius: 12px; background: #fff; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+                            <span style="font-size: 12px; font-weight: 600; color: #1363DF; background: #EFF6FF; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">${job.department || 'Engineering'}</span>
+                            <span style="font-size: 13px; color: #64748B;">${job.employment_type || 'Full-time'} • ${job.location || 'Remote'}</span>
+                        </div>
+                        <h4 class="title" style="margin-bottom: 10px;">
+                            <a href="career-single.html?id=${encodeURIComponent(job.id)}" style="color: #0F172A; text-decoration: none;">${job.title}</a>
+                        </h4>
+                        ${job.salary ? `<div style="font-size: 14px; font-weight: 600; color: #059669; margin-bottom: 10px;">${job.salary}</div>` : ''}
+                        <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 20px;">${safeDesc}${safeDesc.length >= 180 ? '...' : ''}</p>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                        <a class="rts-btn btn-primary" href="career-single.html?id=${encodeURIComponent(job.id)}" style="padding: 12px 22px; font-size: 14px;">View Details</a>
+                        <a class="rts-btn btn-border" href="${applyUrl}"${applyTarget} style="padding: 12px 22px; font-size: 14px;">${job.apply_label || 'Apply Now'}</a>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
     }
 
     function init() {
