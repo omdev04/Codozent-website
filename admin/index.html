@@ -274,16 +274,33 @@
                             </div>
                         </div>
                     </div>
-                    <!-- SUBTAB 2: FIXED HOMEPAGE SLOTS -->
+                    <!-- SUBTAB 2: ALL WEBSITE IMAGE SLOTS (CRUD) -->
                     <div class="subtab-content" id="subtab-image-slots" style="display: none;">
-                        <div class="section-toolbar">
+                        <div class="section-toolbar" style="flex-wrap: wrap; gap: 12px;">
                             <div>
-                                <p class="section-desc">Manage homepage image slots. Rendered dimensions, slot aspect
-                                    ratios, and responsive behavior are strictly preserved.</p>
+                                <p class="section-desc">Manage all images &amp; banners across every page of the website (Homepage, Services, About, Careers, Work, Blog).</p>
                             </div>
-                            <button class="btn btn-primary" onclick="app.publishHomepageImages()">
-                                <i class="fa-regular fa-cloud-arrow-up"></i> Publish Images to Website
-                            </button>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                <select id="image-page-filter" onchange="app.filterImagesByPage(this.value)" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 13px;">
+                                    <option value="all">All Pages</option>
+                                    <option value="index.html">Homepage (index.html)</option>
+                                    <option value="about.html">About (about.html)</option>
+                                    <option value="service.html">Services (service.html)</option>
+                                    <option value="website-development.html">Website Dev</option>
+                                    <option value="mobile-app-development.html">Mobile App Dev</option>
+                                    <option value="custom-software.html">Custom Software</option>
+                                    <option value="products.html">Products</option>
+                                    <option value="career.html">Careers (career.html)</option>
+                                    <option value="case-studies.html">Work (case-studies.html)</option>
+                                    <option value="blog.html">Blog (blog.html)</option>
+                                </select>
+                                <button class="btn btn-outline" onclick="app.showAddImageSlotModal()">
+                                    <i class="fa-regular fa-plus"></i> Add Image Slot
+                                </button>
+                                <button class="btn btn-primary" onclick="app.publishHomepageImages()">
+                                    <i class="fa-regular fa-cloud-arrow-up"></i> Publish All Drafts
+                                </button>
+                            </div>
                         </div>
                         <div class="image-slots-grid" id="homepage-images-grid">
                             <!-- Loaded via JS -->
@@ -982,10 +999,67 @@
                 <div class="modal-footer">
                     <button class="btn btn-outline" onclick="app.closeModal('image-replace-modal')"
                         type="button">Cancel</button>
-                    <button class="btn btn-primary" onclick="app.saveImageDraft()" type="button">
-                        <i class="fa-regular fa-floppy-disk mr-1"></i> Save Draft Replacement
+                    <button class="btn btn-outline" onclick="app.saveImageDraft(false)" type="button">
+                        <i class="fa-regular fa-floppy-disk mr-1"></i> Save Draft
+                    </button>
+                    <button class="btn btn-primary" onclick="app.saveImageDraft(true)" type="button">
+                        <i class="fa-regular fa-cloud-arrow-up mr-1"></i> Save &amp; Publish Live
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: ADD NEW WEBSITE IMAGE SLOT -->
+    <div class="modal" id="image-slot-crud-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add Website Image Slot</h3>
+                    <button class="modal-close" onclick="app.closeModal('image-slot-crud-modal')">×</button>
+                </div>
+                <form id="image-slot-crud-form" onsubmit="app.handleAddImageSlotSubmit(event)">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="new-slot-key">Slot Key (Unique ID) *</label>
+                                <input id="new-slot-key" placeholder="e.g. about_team_photo" required="" type="text" />
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="new-slot-page">Target Page *</label>
+                                <input id="new-slot-page" placeholder="e.g. index.html or *" required="" type="text" value="index.html" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="new-slot-label">Display Label *</label>
+                                <input id="new-slot-label" placeholder="e.g. About Team Photo" required="" type="text" />
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="new-slot-type">Element Type *</label>
+                                <select id="new-slot-type">
+                                    <option value="img">Standard Image (&lt;img&gt;)</option>
+                                    <option value="bg">CSS Background Banner</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-slot-selector">CSS Selector *</label>
+                            <input id="new-slot-selector" placeholder="e.g. .about-banner-area-bg or div.hero img" required="" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label for="new-slot-src">Image URL / Path *</label>
+                            <input id="new-slot-src" placeholder="https://res.cloudinary.com/... or assets/images/..." required="" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label for="new-slot-alt">Alt Text</label>
+                            <input id="new-slot-alt" placeholder="Descriptive alt text" type="text" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" onclick="app.closeModal('image-slot-crud-modal')" type="button">Cancel</button>
+                        <button class="btn btn-primary" type="submit">Create Image Slot</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

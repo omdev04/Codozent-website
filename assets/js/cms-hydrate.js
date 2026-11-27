@@ -182,24 +182,40 @@
         }
     }
 
-    // 3. Hydrate Homepage Image Slots
+    // 3. Hydrate All Website Image Slots (Homepage + Inner Pages + Background Banners)
     async function hydrateHomepageImages() {
         const data = await fetchJson('/api/public/homepage-images');
         if (!data || !data.success || !Array.isArray(data.images)) return;
 
+        const rawPath = window.location.pathname.split('/').pop() || 'index.html';
+        const pageFile = rawPath === '' ? 'index.html' : rawPath.toLowerCase();
+
         data.images.forEach(slot => {
             if (!slot.selector || !slot.current_src) return;
+            const slotPage = (slot.page_path || 'index.html').toLowerCase();
+            if (slotPage !== '*' && slotPage !== pageFile) return;
+
             try {
-                const el = document.querySelector(slot.selector);
-                if (el && el.tagName === 'IMG') {
-                    const cleanSrc = cleanUrl(slot.current_src);
-                    if (el.getAttribute('src') !== cleanSrc) {
-                        el.src = cleanSrc;
+                const els = document.querySelectorAll(slot.selector);
+                if (!els || els.length === 0) return;
+                const cleanSrc = cleanUrl(slot.current_src);
+
+                els.forEach(el => {
+                    if (slot.target_type === 'bg' || el.tagName !== 'IMG') {
+                        el.style.backgroundImage = `url('${cleanSrc}')`;
+                        el.style.backgroundSize = 'cover';
+                        el.style.backgroundPosition = 'center';
+                        const jarallaxImg = el.querySelector('img.jarallax-img, [id^="jarallax-container"] img');
+                        if (jarallaxImg) jarallaxImg.src = cleanSrc;
+                    } else {
+                        if (el.getAttribute('src') !== cleanSrc) {
+                            el.src = cleanSrc;
+                        }
+                        if (slot.current_alt) {
+                            el.alt = slot.current_alt;
+                        }
                     }
-                    if (slot.current_alt) {
-                        el.alt = slot.current_alt;
-                    }
-                }
+                });
             } catch (e) {
                 // Ignore selector error
             }

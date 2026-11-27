@@ -902,46 +902,133 @@ const app = {
         }
     },
 
-    // ----------------- HOMEPAGE IMAGES -----------------
+    // ----------------- ALL WEBSITE IMAGES (CRUD) -----------------
     async loadHomepageImages() {
         const grid = document.getElementById('homepage-images-grid');
-        grid.innerHTML = '<div class="py-4 text-center"><i class="fa-regular fa-spinner fa-spin"></i> Loading image slots...</div>';
+        grid.innerHTML = '<div class="py-4 text-center"><i class="fa-regular fa-spinner fa-spin"></i> Loading website image slots...</div>';
 
         try {
             const res = await fetch('/api/admin/homepage-images');
             const data = await res.json();
             this.allImages = data.images || [];
+            const filterEl = document.getElementById('image-page-filter');
+            const pageFilter = filterEl ? filterEl.value : 'all';
+            this.filterImagesByPage(pageFilter);
+        } catch (e) {
+            grid.innerHTML = '<div class="text-danger py-4">Failed to load website image slots.</div>';
+        }
+    },
 
-            grid.innerHTML = this.allImages.map(img => {
-                const draftSrc = img.draft_src || img.current_src;
-                const draftAlt = img.draft_alt || img.current_alt;
-                const hasDraft = img.has_draft ? '<span class="badge badge-warning">Unpublished Draft</span>' : '<span class="badge badge-success">Live on Website</span>';
+    filterImagesByPage(pageFilter) {
+        const list = (!pageFilter || pageFilter === 'all')
+            ? (this.allImages || [])
+            : (this.allImages || []).filter(i => (i.page_path || 'index.html') === pageFilter);
+        this.renderImageSlotsGrid(list);
+    },
 
-                return `
-                <div class="image-slot-card">
-                    <div class="image-slot-preview">
-                        <img src="${this.formatImageUrl(draftSrc)}" alt="${this.escapeHtml(draftAlt)}">
+    renderImageSlotsGrid(list) {
+        const grid = document.getElementById('homepage-images-grid');
+        if (!grid) return;
+        if (!list || list.length === 0) {
+            grid.innerHTML = '<div class="py-4 text-muted text-center" style="grid-column: 1 / -1;">No image slots found for this page. Click "+ Add Image Slot" to create one.</div>';
+            return;
+        }
+        grid.innerHTML = list.map(img => {
+            const draftSrc = img.draft_src || img.current_src;
+            const draftAlt = img.draft_alt || img.current_alt;
+            const hasDraft = img.has_draft ? '<span class="badge badge-warning">Unpublished Draft</span>' : '<span class="badge badge-success">Live</span>';
+            const pageTag = img.page_path || 'index.html';
+            const typeTag = img.target_type === 'bg' ? 'BG Banner' : 'IMG';
+
+            return `
+            <div class="image-slot-card">
+                <div class="image-slot-preview">
+                    <img src="${this.formatImageUrl(draftSrc)}" alt="${this.escapeHtml(draftAlt)}">
+                </div>
+                <div class="image-slot-body">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; margin-bottom: 6px;">
+                        <h4 class="image-slot-title">${this.escapeHtml(img.label)}</h4>
+                        ${hasDraft}
                     </div>
-                    <div class="image-slot-body">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                            <h4 class="image-slot-title">${this.escapeHtml(img.label)}</h4>
-                            ${hasDraft}
-                        </div>
-                        <div class="image-slot-meta">
-                            <span><i class="fa-regular fa-vector-polygon"></i> Slot Specs: ${img.recommended_dims || 'Fixed container'}</span>
-                        </div>
-                        <div class="image-slot-alt">
-                            <strong>Alt:</strong> ${this.escapeHtml(draftAlt)}
-                        </div>
-                        <button class="btn btn-outline btn-block btn-sm" onclick="app.showReplaceImageModal('${img.slot_key}')">
-                            <i class="fa-regular fa-camera-rotate"></i> Replace Image &amp; Alt
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+                        <span class="badge badge-primary" style="font-size: 11px;">${this.escapeHtml(pageTag)}</span>
+                        <span class="badge badge-muted" style="font-size: 11px;">${typeTag}</span>
+                    </div>
+                    <div class="image-slot-meta">
+                        <span><i class="fa-regular fa-vector-polygon"></i> ${this.escapeHtml(img.recommended_dims || 'Responsive')}</span>
+                    </div>
+                    <div class="image-slot-alt">
+                        <strong>Alt:</strong> ${this.escapeHtml(draftAlt)}
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-top: 8px;">
+                        <button class="btn btn-outline btn-sm" style="flex: 1;" onclick="app.showReplaceImageModal('${this.escapeHtml(img.slot_key)}')">
+                            <i class="fa-regular fa-camera-rotate"></i> Replace Image
+                        </button>
+                        <button class="btn btn-danger btn-sm" title="Delete Slot" onclick="app.deleteImageSlot('${this.escapeHtml(img.slot_key)}')">
+                            <i class="fa-regular fa-trash"></i>
                         </button>
                     </div>
                 </div>
-                `;
-            }).join('');
-        } catch (e) {
-            grid.innerHTML = '<div class="text-danger py-4">Failed to load homepage image slots.</div>';
+            </div>
+            `;
+        }).join('');
+    },
+
+    showAddImageSlotModal() {
+        const form = document.getElementById('image-slot-crud-form');
+        if (form) form.reset();
+        const filterEl = document.getElementById('image-page-filter');
+        if (filterEl && filterEl.value !== 'all') {
+            document.getElementById('new-slot-page').value = filterEl.value;
+        }
+        this.openModal('image-slot-crud-modal');
+    },
+
+    async handleAddImageSlotSubmit(e) {
+        e.preventDefault();
+        const payload = {
+            slot_key: document.getElementById('new-slot-key').value.trim(),
+            page_path: document.getElementById('new-slot-page').value.trim() || 'index.html',
+            label: document.getElementById('new-slot-label').value.trim(),
+            target_type: document.getElementById('new-slot-type').value,
+            selector: document.getElementById('new-slot-selector').value.trim(),
+            current_src: document.getElementById('new-slot-src').value.trim(),
+            current_alt: document.getElementById('new-slot-alt').value.trim()
+        };
+        try {
+            const res = await fetch('/api/admin/homepage-images', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                this.closeModal('image-slot-crud-modal');
+                this.showToast('New image slot created & live!', 'success');
+                this.loadHomepageImages();
+                this.loadDashboardData();
+            } else {
+                this.showToast(data.detail || 'Failed to create image slot.', 'error');
+            }
+        } catch (err) {
+            this.showToast('Server error creating image slot.', 'error');
+        }
+    },
+
+    async deleteImageSlot(slotKey) {
+        if (!confirm(`Delete image slot "${slotKey}"?`)) return;
+        try {
+            const res = await fetch(`/api/admin/homepage-images/${encodeURIComponent(slotKey)}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                this.showToast('Image slot deleted.', 'success');
+                this.loadHomepageImages();
+                this.loadDashboardData();
+            } else {
+                this.showToast(data.detail || 'Could not delete slot.', 'error');
+            }
+        } catch (err) {
+            this.showToast('Server error deleting image slot.', 'error');
         }
     },
 
@@ -1030,7 +1117,7 @@ const app = {
         }
     },
 
-    async saveImageDraft() {
+    async saveImageDraft(publishImmediately = false) {
         const slotKey = document.getElementById('replace-slot-key').value;
         const preview = document.getElementById('modal-img-preview');
         const uploadedPath = preview ? preview.getAttribute('data-uploaded-path') : null;
@@ -1046,21 +1133,25 @@ const app = {
         }
 
         try {
-            const res = await fetch(`/api/admin/homepage-images/${slotKey}`, {
+            const res = await fetch(`/api/admin/homepage-images/${encodeURIComponent(slotKey)}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ draft_src: newSrc, draft_alt: altText })
+                body: JSON.stringify({
+                    draft_src: newSrc,
+                    draft_alt: altText,
+                    publish_immediately: Boolean(publishImmediately)
+                })
             });
             const data = await res.json();
             if (res.ok && data.success) {
                 this.closeModal('image-replace-modal');
-                this.showToast('Draft image updated. Click "Publish Images to Website" to make it live.', 'success');
+                this.showToast(data.message || (publishImmediately ? 'Image published live!' : 'Draft image updated.'), 'success');
                 this.loadHomepageImages();
             } else {
-                this.showToast(data.detail || 'Failed to save draft image.', 'error');
+                this.showToast(data.detail || 'Failed to save image.', 'error');
             }
         } catch (e) {
-            this.showToast('Failed to save draft image.', 'error');
+            this.showToast('Failed to save image.', 'error');
         }
     },
 

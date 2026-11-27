@@ -564,10 +564,42 @@ async function handleAdminApi(request, url, env, session) {
         }
     }
 
-    // 3. Homepage Images
+    // 3. Homepage & All-Website Images CRUD
     if (path === 'homepage-images') {
-        const rows = await querySupabase(env, 'homepage_images?select=*&order=slot_key.asc');
-        return jsonResponse({ success: true, images: rows || [] });
+        if (method === 'GET') {
+            const rows = await querySupabase(env, 'homepage_images?select=*&order=page_path.asc,slot_key.asc');
+            return jsonResponse({ success: true, images: rows || [] });
+        }
+        if (method === 'POST') {
+            const body = await request.json();
+            const slotKey = (body.slot_key || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_');
+            if (!slotKey || !body.selector || !body.current_src) {
+                return jsonResponse({ detail: 'slot_key, selector, and image URL are required.' }, 400);
+            }
+            const now = new Date().toISOString();
+            const payload = {
+                slot_key: slotKey,
+                label: (body.label || slotKey).trim(),
+                section: (body.section || 'Custom').trim(),
+                selector: body.selector.trim(),
+                current_src: body.current_src.trim(),
+                draft_src: body.current_src.trim(),
+                current_alt: (body.current_alt || '').trim(),
+                draft_alt: (body.current_alt || '').trim(),
+                recommended_dims: (body.recommended_dims || 'Responsive').trim(),
+                page_path: (body.page_path || 'index.html').trim(),
+                target_type: body.target_type === 'bg' ? 'bg' : 'img',
+                has_draft: 0,
+                updated_at: now
+            };
+            const res = await querySupabaseRaw(env, 'homepage_images', {
+                method: 'POST',
+                prefer: 'return=representation',
+                body: payload
+            });
+            if (!res.ok) return jsonResponse({ detail: `Database error: ${res.error}` }, 500);
+            return jsonResponse({ success: true, message: 'Image slot created.', image: res.data?.[0] || payload });
+        }
     }
 
     if (path === 'homepage-images/publish' && method === 'POST') {
@@ -586,25 +618,50 @@ async function handleAdminApi(request, url, env, session) {
                 });
             }
         }
-        return jsonResponse({ success: true, message: 'All homepage images published live.' });
+        return jsonResponse({ success: true, message: 'All website images published live.' });
     }
 
-    if (path.startsWith('homepage-images/') && method === 'PUT') {
+    if (path.startsWith('homepage-images/')) {
         const slotKey = decodeURIComponent(path.replace('homepage-images/', ''));
-        const body = await request.json();
-        const payload = {
-            draft_src: (body.draft_src || '').trim(),
-            draft_alt: (body.draft_alt || '').trim(),
-            has_draft: 1,
-            updated_at: new Date().toISOString()
-        };
-        const res = await querySupabaseRaw(env, `homepage_images?slot_key=eq.${encodeURIComponent(slotKey)}`, {
-            method: 'PATCH',
-            prefer: 'return=representation',
-            body: payload
-        });
-        if (!res.ok) return jsonResponse({ detail: `Database error: ${res.error}` }, 500);
-        return jsonResponse({ success: true, message: 'Draft image saved.', image: res.data?.[0] || payload });
+        if (method === 'PUT') {
+            const body = await request.json();
+            const now = new Date().toISOString();
+            const publishNow = Boolean(body.publish_immediately);
+            const payload = {
+                draft_src: (body.draft_src || '').trim(),
+                draft_alt: (body.draft_alt || '').trim(),
+                has_draft: publishNow ? 0 : 1,
+                updated_at: now
+            };
+            if (publishNow) {
+                if (payload.draft_src) payload.current_src = payload.draft_src;
+                if (payload.draft_alt) payload.current_alt = payload.draft_alt;
+            }
+            if (body.label !== undefined) payload.label = body.label.trim();
+            if (body.section !== undefined) payload.section = body.section.trim();
+            if (body.selector !== undefined) payload.selector = body.selector.trim();
+            if (body.page_path !== undefined) payload.page_path = body.page_path.trim();
+            if (body.target_type !== undefined) payload.target_type = body.target_type === 'bg' ? 'bg' : 'img';
+
+            const res = await querySupabaseRaw(env, `homepage_images?slot_key=eq.${encodeURIComponent(slotKey)}`, {
+                method: 'PATCH',
+                prefer: 'return=representation',
+                body: payload
+            });
+            if (!res.ok) return jsonResponse({ detail: `Database error: ${res.error}` }, 500);
+            return jsonResponse({
+                success: true,
+                message: publishNow ? 'Image updated & published live!' : 'Draft image saved.',
+                image: res.data?.[0] || payload
+            });
+        }
+        if (method === 'DELETE') {
+            const res = await querySupabaseRaw(env, `homepage_images?slot_key=eq.${encodeURIComponent(slotKey)}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) return jsonResponse({ detail: `Database error: ${res.error}` }, 500);
+            return jsonResponse({ success: true, message: 'Image slot deleted.' });
+        }
     }
 
     // 4. Pages (Page Content)
@@ -1031,7 +1088,8 @@ async function handleHomepageSSR(request, env) {
 
     if (imagesRows && Array.isArray(imagesRows)) {
         imagesRows.forEach(slot => {
-            if (slot.selector && slot.current_src) {
+            const isHomepage = !slot.page_path || slot.page_path === 'index.html' || slot.page_path === '*';
+            if (isHomepage && slot.target_type !== 'bg' && slot.selector && slot.current_src) {
                 rewriter = rewriter.on(slot.selector, {
                     element(e) {
                         e.setAttribute('src', slot.current_src);
