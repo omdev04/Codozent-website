@@ -201,20 +201,30 @@
                 const cleanSrc = cleanUrl(slot.current_src);
 
                 els.forEach(el => {
-                    if (slot.target_type === 'bg' || el.tagName !== 'IMG') {
-                        el.style.backgroundImage = `url('${cleanSrc}')`;
-                        el.style.backgroundSize = 'cover';
-                        el.style.backgroundPosition = 'center';
-                        const jarallaxImg = el.querySelector('img.jarallax-img, [id^="jarallax-container"] img');
-                        if (jarallaxImg) jarallaxImg.src = cleanSrc;
-                    } else {
-                        if (el.getAttribute('src') !== cleanSrc) {
-                            el.src = cleanSrc;
+                    const applyImage = () => {
+                        if (slot.target_type === 'bg' || el.tagName !== 'IMG') {
+                            el.style.setProperty('background-image', `url('${cleanSrc}')`, 'important');
+                            el.style.backgroundSize = 'cover';
+                            el.style.backgroundPosition = 'center';
+                            const jContainer = el.querySelector('[id^="jarallax-container"]');
+                            if (jContainer) {
+                                const jImg = jContainer.querySelector('img');
+                                if (jImg) jImg.src = cleanSrc;
+                                const jDiv = jContainer.querySelector('div');
+                                if (jDiv) jDiv.style.setProperty('background-image', `url('${cleanSrc}')`, 'important');
+                            }
+                        } else {
+                            if (el.getAttribute('src') !== cleanSrc) {
+                                el.src = cleanSrc;
+                            }
+                            if (slot.current_alt) {
+                                el.alt = slot.current_alt;
+                            }
                         }
-                        if (slot.current_alt) {
-                            el.alt = slot.current_alt;
-                        }
-                    }
+                    };
+                    applyImage();
+                    setTimeout(applyImage, 350);
+                    window.addEventListener('load', applyImage, { once: true });
                 });
             } catch (e) {
                 // Ignore selector error
