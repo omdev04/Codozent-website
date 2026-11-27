@@ -8,6 +8,25 @@
  * - All secrets and credentials read strictly from Cloudflare Environment Variables / Secrets
  */
 
+// ----------------- ENVIRONMENT HELPER -----------------
+
+function getEnvVar(env, key, defaultVal = '') {
+    if (env && typeof env[key] !== 'undefined' && env[key] !== null) {
+        return String(env[key]);
+    }
+    try {
+        if (typeof globalThis !== 'undefined' && typeof globalThis[key] !== 'undefined' && globalThis[key] !== null) {
+            return String(globalThis[key]);
+        }
+    } catch {}
+    try {
+        if (typeof process !== 'undefined' && process.env && typeof process.env[key] !== 'undefined' && process.env[key] !== null) {
+            return String(process.env[key]);
+        }
+    } catch {}
+    return defaultVal;
+}
+
 // ----------------- CRYPTO / JWT SESSION HELPERS -----------------
 
 function base64UrlEncode(str) {
@@ -92,8 +111,8 @@ function parseCookies(cookieHeader) {
 // ----------------- SUPABASE REST API CLIENT -----------------
 
 async function querySupabase(env, path, options = {}) {
-    let supabaseUrl = (env.SUPABASE_URL || '').trim();
-    const supabaseKey = (env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY || '').trim();
+    let supabaseUrl = getEnvVar(env, 'SUPABASE_URL').trim();
+    const supabaseKey = (getEnvVar(env, 'SUPABASE_KEY') || getEnvVar(env, 'SUPABASE_SERVICE_ROLE_KEY') || getEnvVar(env, 'SUPABASE_ANON_KEY')).trim();
 
     if (!supabaseUrl || !supabaseKey) {
         return null; // Return null gracefully if key not yet provided in env
@@ -138,7 +157,7 @@ async function querySupabase(env, path, options = {}) {
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
-        const secretKey = env.CMS_SECRET_KEY || 'insecure-placeholder-set-cms-secret-key-in-env';
+        const secretKey = getEnvVar(env, 'CMS_SECRET_KEY', 'insecure-placeholder-set-cms-secret-key-in-env');
 
         // 1. CORS Preflight
         if (request.method === 'OPTIONS') {
@@ -154,10 +173,10 @@ export default {
 
         // 2. Health Check Route
         if (url.pathname === '/api/health' || url.pathname === '/health') {
-            const hasUrl = Boolean(env.SUPABASE_URL && env.SUPABASE_URL.trim());
-            const hasKey = Boolean(env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY);
-            const hasEmail = Boolean(env.ADMIN_EMAIL && env.ADMIN_EMAIL.trim());
-            const hasPass = Boolean(env.ADMIN_PASSWORD && env.ADMIN_PASSWORD.trim());
+            const hasUrl = Boolean(getEnvVar(env, 'SUPABASE_URL').trim());
+            const hasKey = Boolean(getEnvVar(env, 'SUPABASE_KEY') || getEnvVar(env, 'SUPABASE_SERVICE_ROLE_KEY') || getEnvVar(env, 'SUPABASE_ANON_KEY'));
+            const hasEmail = Boolean(getEnvVar(env, 'ADMIN_EMAIL').trim());
+            const hasPass = Boolean(getEnvVar(env, 'ADMIN_PASSWORD').trim());
 
             let dbStatus = 'NOT_CONFIGURED';
             if (hasUrl && hasKey) {
@@ -170,16 +189,17 @@ export default {
             }
 
             return jsonResponse({
-                status: dbStatus === 'CONNECTED' ? 'healthy' : 'setup_required',
+                status: (dbStatus === 'CONNECTED' && hasEmail && hasPass) ? 'healthy' : 'setup_required',
                 service: 'Codozent Cloudflare Edge Worker',
                 config: {
-                    SUPABASE_URL: hasUrl ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
-                    SUPABASE_KEY: hasKey ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
-                    ADMIN_EMAIL: hasEmail ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
-                    ADMIN_PASSWORD: hasPass ? 'CONFIGURED' : 'MISSING (Add in Cloudflare Settings > Variables)',
-                    CMS_SECRET_KEY: env.CMS_SECRET_KEY ? 'CONFIGURED' : 'USING_DEFAULT_SALT'
+                    SUPABASE_URL: hasUrl ? 'CONFIGURED' : 'MISSING (Retry deployment in Deployments tab)',
+                    SUPABASE_KEY: hasKey ? 'CONFIGURED' : 'MISSING (Retry deployment in Deployments tab)',
+                    ADMIN_EMAIL: hasEmail ? 'CONFIGURED' : 'MISSING (Retry deployment in Deployments tab)',
+                    ADMIN_PASSWORD: hasPass ? 'CONFIGURED' : 'MISSING (Retry deployment in Deployments tab)',
+                    CMS_SECRET_KEY: getEnvVar(env, 'CMS_SECRET_KEY') ? 'CONFIGURED' : 'USING_DEFAULT_SALT'
                 },
-                database_status: dbStatus
+                database_status: dbStatus,
+                hint: (!hasEmail || !hasPass) ? 'If variables were recently added in Cloudflare Settings, go to Deployments tab and click Retry Deployment.' : 'All variables loaded.'
             });
         }
 
@@ -262,11 +282,13 @@ async function handleLogin(request, env, secretKey) {
         const email = (body.email || '').trim().toLowerCase();
         const password = body.password || '';
 
-        const adminEmail = (env.ADMIN_EMAIL || '').trim().toLowerCase();
-        const adminPass = env.ADMIN_PASSWORD || '';
+        const adminEmail = getEnvVar(env, 'ADMIN_EMAIL').trim().toLowerCase();
+        const adminPass = getEnvVar(env, 'ADMIN_PASSWORD');
 
         if (!adminEmail || !adminPass) {
-            return jsonResponse({ detail: 'ADMIN_EMAIL or ADMIN_PASSWORD is not configured in Cloudflare environment variables.' }, 500);
+            return jsonResponse({
+                detail: 'ADMIN_EMAIL or ADMIN_PASSWORD is not loaded in this deployment snapshot. In Cloudflare Pages, go to the "Deployments" tab and click "Retry deployment" (or push a commit) so your newly saved variables are applied.'
+            }, 500);
         }
 
         // Check configured admin
