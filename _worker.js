@@ -1090,12 +1090,14 @@ async function handleHomepageSSR(request, env) {
         imagesRows.forEach(slot => {
             const isHomepage = !slot.page_path || slot.page_path === 'index.html' || slot.page_path === '*';
             if (isHomepage && slot.target_type !== 'bg' && slot.selector && slot.current_src) {
-                rewriter = rewriter.on(slot.selector, {
-                    element(e) {
-                        e.setAttribute('src', slot.current_src);
-                        if (slot.current_alt) e.setAttribute('alt', slot.current_alt);
-                    }
-                });
+                try {
+                    rewriter = rewriter.on(slot.selector, {
+                        element(e) {
+                            e.setAttribute('src', slot.current_src);
+                            if (slot.current_alt) e.setAttribute('alt', slot.current_alt);
+                        }
+                    });
+                } catch {}
             }
         });
     }
