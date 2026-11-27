@@ -208,16 +208,20 @@
 
     // 4. Hydrate Work / Case Studies Items
     async function hydrateWorkItems() {
-        const cards = document.querySelectorAll('div.single-case-studies');
+        const cards = Array.from(document.querySelectorAll('div.single-case-studies'));
         if (!cards || cards.length === 0) return;
 
         const data = await fetchJson('/api/public/work');
-        if (!data || !data.success || !Array.isArray(data.work)) return;
+        if (!data || !data.success || !Array.isArray(data.work) || data.work.length === 0) return;
 
-        data.work.forEach((item, idx) => {
-            if (idx >= cards.length) return;
-            const card = cards[idx];
-            if (!card) return;
+        cards.forEach((card, idx) => {
+            const col = card.closest('[class*="col-"]') || card;
+            if (idx >= data.work.length) {
+                col.style.display = 'none';
+                return;
+            }
+            col.style.display = '';
+            const item = data.work[idx];
 
             // Thumbnail
             const thumbLink = card.querySelector('a.thumbnail');
@@ -248,16 +252,20 @@
         const blogArea = document.querySelector('div.rts-blog-area');
         if (!blogArea) return;
 
-        const cards = blogArea.querySelectorAll('div.single-blog-area-start');
+        const cards = Array.from(blogArea.querySelectorAll('div.single-blog-area-start'));
         if (!cards || cards.length === 0) return;
 
         const data = await fetchJson('/api/public/blog');
-        if (!data || !data.success || !Array.isArray(data.posts)) return;
+        if (!data || !data.success || !Array.isArray(data.posts) || data.posts.length === 0) return;
 
-        data.posts.slice(0, cards.length).forEach((post, idx) => {
-            const card = cards[idx];
-            if (!card) return;
-
+        cards.forEach((card, idx) => {
+            const col = card.closest('[class*="col-"]') || card;
+            if (idx >= data.posts.length) {
+                col.style.display = 'none';
+                return;
+            }
+            col.style.display = '';
+            const post = data.posts[idx];
             const targetUrl = `blog-details.html?slug=${post.slug}`;
 
             // Thumbnail
